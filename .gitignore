@@ -1,0 +1,21 @@
+# Python
+.venv/
+__pycache__/
+.pytest_cache/
+
+# Data: raw downloads and intermediate tables are rebuilt by the pipeline; the site's copy in web/public/data is kept
+data/raw/
+data/processed/
+data/*.duckdb
+data/*.download
+
+# Website build output
+web/node_modules/
+web/.next/
+web/out/
+web/next-env.d.ts
+
+# Local tooling
+.claude/
+.DS_Store
+*.log

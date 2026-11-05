@@ -1,0 +1,9 @@
+anthropic>=2.5,<3
+duckdb>=2.0,<3
+fastapi>=0.162,<1
+uvicorn[standard]>=0.32
+langgraph>=1.2,<2
+pydantic>=2.14,<3
+sqlglot>=30.29,<31
+slowapi>=0.1.10
+httpx>=0.28

@@ -1,0 +1,121 @@
+# Keeps the site and the Ask API current while ballots are counted.
+#
+# Every 2 hours: re-fetch the 51 state race lists (race totals) plus any race detail not yet on disk.
+# Once a day:    also re-fetch every race's county detail (about 1,150 requests, ~20 minutes).
+# Then rebuild the analysis tables and the DuckDB file, publish the database as the `data-latest` release asset
+# (the Ask API polls it through DATA_URL), and commit the site's JSON (a push redeploys the site on Vercel).
+#
+# GitHub runs schedules on the default branch only, can start them late under load, and turns them off in a
+# public repo after 60 days without activity. Once results are certified, drop the 2-hour line.
+name: Refresh election data
+
+on:
+  schedule:
+    - cron: "17 */2 * * *"
+    - cron: "40 9 * * *"
+  workflow_dispatch:
+    inputs:
+      full:
+        description: "Re-fetch every race's county detail"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: refresh-data
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: pipeline/requirements.txt
+
+      - run: pip install -r pipeline/requirements.txt
+
+      # Baselines (2024 results, turnout, demographics, outlines) never change: cache them once.
+      - name: Restore baselines
+        id: baselines
+        uses: actions/cache/restore@v6
+        with:
+          path: |
+            data/raw/baselines
+            data/raw/exit
+          key: baselines-v1
+
+      # civicAPI files carry over between runs so a 2-hour run only re-fetches the lists.
+      - name: Restore civicAPI files
+        uses: actions/cache/restore@v6
+        with:
+          path: data/raw/civic
+          key: civic-${{ github.run_id }}
+          restore-keys: civic-
+
+      - name: Fetch civicAPI
+        env:
+          SCHEDULE: ${{ github.event.schedule }}
+          FULL: ${{ inputs.full }}
+        run: |
+          if [ "$SCHEDULE" = "40 9 * * *" ] || [ "$FULL" = "true" ]; then
+            python pipeline/fetch_civic.py --refresh --max-minutes 45
+          else
+            python pipeline/fetch_civic.py --max-minutes 20
+          fi
+          tail -n 3 data/raw/civic/fetch.log
+
+      - name: Fetch baselines and the latest exit poll
+        run: python pipeline/fetch_baselines.py
+
+      - name: Build
+        run: |
+          python pipeline/build_geo.py
+          python pipeline/build_exit.py
+          python pipeline/build_results.py
+          python pipeline/build_db.py
+          python pipeline/export_web.py
+
+      - name: Save civicAPI files
+        if: always()
+        uses: actions/cache/save@v6
+        with:
+          path: data/raw/civic
+          key: civic-${{ github.run_id }}
+
+      - name: Save baselines
+        if: steps.baselines.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v6
+        with:
+          path: |
+            data/raw/baselines
+            data/raw/exit
+          key: baselines-v1
+
+      - name: Publish the database for the Ask API
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view data-latest >/dev/null 2>&1 || \
+            gh release create data-latest --title "Latest data" --latest=false \
+              --notes "midterms.duckdb for the Ask API, replaced by every refresh run."
+          gh release upload data-latest data/midterms.duckdb --clobber
+
+      - name: Commit the site's data
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add web/public/data
+          if git diff --cached --quiet; then
+            echo "No change in the site's data."
+          else
+            git commit -m "data: refresh $(date -u +%Y-%m-%dT%H:%MZ)"
+            git push
+          fi

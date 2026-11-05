@@ -1,0 +1,858 @@
+<title>Midterm Watch Desk</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Public+Sans:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: one timeline of poll-closing slots, each a grid of race cards, under a running scoreboard. */
+:root {
+  --paper: #f3f5f8;
+  --surface: #ffffff;
+  --ink: #131922;
+  --ink-2: #505b6c;
+  --rule: #d8dee7;
+  --dem: #1d5bc2;
+  --dem-tint: #e6eefb;
+  --rep: #c0262f;
+  --rep-tint: #fbe8e9;
+  --ind: #7445b0;
+  --ind-tint: #f0e9fa;
+  --live: #9a5b00;
+  --live-tint: #fff1d6;
+  --font-display: "Barlow Condensed", "Arial Narrow", "Roboto Condensed", sans-serif;
+  --font-body: "Public Sans", -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0e1218; --surface: #161c25; --ink: #e7ebf1; --ink-2: #9ba6b7; --rule: #283140;
+    --dem: #7fa9ff; --dem-tint: #172743; --rep: #ff7d82; --rep-tint: #3b191c;
+    --ind: #bf9bff; --ind-tint: #291f3f; --live: #ffc062; --live-tint: #3a2a0c;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #0e1218; --surface: #161c25; --ink: #e7ebf1; --ink-2: #9ba6b7; --rule: #283140;
+  --dem: #7fa9ff; --dem-tint: #172743; --rep: #ff7d82; --rep-tint: #3b191c;
+  --ind: #bf9bff; --ind-tint: #291f3f; --live: #ffc062; --live-tint: #3a2a0c;
+  color-scheme: dark;
+}
+body { background: var(--paper); color: var(--ink); font-family: var(--font-body); font-size: 15px; line-height: 1.45; }
+.wrap { max-width: 1180px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+a { color: inherit; text-decoration-thickness: 1px; text-underline-offset: 2px; }
+a:hover { text-decoration-thickness: 2px; }
+:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.num { font-variant-numeric: tabular-nums; }
+
+/* Masthead */
+.mast { border-bottom: 1px solid var(--rule); background: var(--surface); }
+.mast .wrap { padding-block: 18px 14px; display: flex; flex-wrap: wrap; gap: 10px 24px; align-items: end; justify-content: space-between; }
+.eyebrow { margin: 0 0 2px; font-size: 12px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-2); }
+h1 { margin: 0; font-family: var(--font-display); font-weight: 700; font-size: clamp(2.1rem, 6vw, 3.1rem); line-height: .95; letter-spacing: .01em; text-transform: uppercase; text-wrap: balance; }
+.clock { text-align: right; }
+.clock-time { font-family: var(--font-display); font-weight: 600; font-size: 1.9rem; line-height: 1; font-variant-numeric: tabular-nums; }
+.clock-sub { font-size: 13px; color: var(--ink-2); }
+.sources { flex-basis: 100%; display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 14px; }
+.sources span { color: var(--ink-2); }
+.sources a { font-weight: 600; }
+
+/* Scoreboard */
+.board { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 270px), 1fr)); gap: 12px; padding-block: 16px 4px; }
+.tally { background: var(--surface); border: 1px solid var(--rule); border-radius: 6px; padding: 12px 14px; display: grid; gap: 8px; min-width: 0; }
+.tally h2 { margin: 0; font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-2); }
+.tally-big { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; }
+.tally-big strong { font-family: var(--font-display); font-weight: 700; font-size: 2.2rem; line-height: 1; font-variant-numeric: tabular-nums; }
+.tally-big span { color: var(--ink-2); font-size: 14px; }
+.bar { display: flex; height: 10px; border-radius: 3px; overflow: hidden; background: var(--rule); }
+.bar i { display: block; height: 100%; }
+.bar .d { background: var(--dem); } .bar .r { background: var(--rep); } .bar .i { background: var(--ind); }
+.tally-line { margin: 0; font-size: 14px; }
+.tally-line b.d { color: var(--dem); } .tally-line b.r { color: var(--rep); } .tally-line b.i { color: var(--ind); }
+.tally-note { margin: 0; font-size: 12.5px; color: var(--ink-2); }
+
+/* Controls */
+.controls { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; padding-block: 14px 6px; }
+.seg { display: inline-flex; border: 1px solid var(--rule); border-radius: 6px; overflow: hidden; background: var(--surface); flex-wrap: wrap; }
+.seg button { font: inherit; font-size: 14px; font-weight: 600; border: 0; background: transparent; color: var(--ink-2); padding: 7px 12px; cursor: pointer; }
+.seg button + button { border-left: 1px solid var(--rule); }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--surface); }
+.check { display: inline-flex; gap: 6px; align-items: center; font-size: 14px; cursor: pointer; }
+.check input { width: 16px; height: 16px; accent-color: var(--ink); margin: 0; }
+.jump { font: inherit; font-size: 14px; font-weight: 600; background: none; border: 0; padding: 4px 0; color: var(--ink); text-decoration: underline; text-underline-offset: 2px; cursor: pointer; }
+.sync { margin-left: auto; font-size: 13px; color: var(--ink-2); display: inline-flex; align-items: center; gap: 6px; }
+.sync::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--ink-2); }
+.sync[data-mode="live"]::before { background: var(--dem); }
+.sync[data-mode="slow"]::before, .sync[data-mode="error"]::before { background: var(--live); }
+.msg { margin: 0; font-size: 14px; padding: 8px 12px; border-radius: 6px; background: var(--live-tint); color: var(--ink); }
+.search { flex: 1 1 260px; max-width: 440px; display: flex; gap: 8px; align-items: center; }
+.search input { flex: 1; min-width: 0; font: inherit; font-size: 16px; padding: 7px 10px; border: 1px solid var(--rule); border-radius: 6px; background: var(--surface); color: var(--ink); }
+.search input::placeholder { color: var(--ink-2); }
+.match-count { font-size: 13px; color: var(--ink-2); white-space: nowrap; }
+.btn { font: inherit; font-size: 14px; font-weight: 600; padding: 7px 12px; border: 1px solid var(--rule); border-radius: 6px; background: var(--surface); color: var(--ink); cursor: pointer; }
+.btn:disabled { opacity: .55; cursor: progress; }
+.link { font: inherit; background: none; border: 0; padding: 0; color: inherit; text-align: left; cursor: pointer; font-weight: 600; text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 2px; }
+
+/* Feed */
+.feed { background: var(--surface); border: 1px solid var(--rule); border-radius: 6px; padding: 10px 14px 12px; margin-block: 8px 4px; }
+.feed-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 12px; }
+.feed h2 { margin: 0; font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-2); }
+.feed-status { font-size: 12.5px; color: var(--ink-2); }
+.feed ol { list-style: none; margin: 6px 0 0; padding: 0; }
+.feed li { display: grid; grid-template-columns: 4.4rem minmax(0, 1fr); gap: 10px; padding: 6px 0; border-top: 1px solid var(--rule); font-size: 14px; }
+.feed li:first-child { border-top: 0; }
+.feed li.feed-empty { display: block; color: var(--ink-2); }
+.feed li p { margin: 0; }
+.feed time { color: var(--ink-2); font-size: 13px; font-variant-numeric: tabular-nums; padding-top: 1px; }
+.kind { font-size: 10.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-2); margin-right: 6px; }
+.feed li[data-kind="winner"] .kind, .feed li[data-kind="lead"] .kind { color: var(--live); }
+.feed-more { margin-top: 6px; }
+
+/* Toasts */
+.toasts { position: fixed; z-index: 10; right: max(16px, env(safe-area-inset-right, 0px)); bottom: max(16px, env(safe-area-inset-bottom, 0px)); width: min(380px, calc(100vw - 32px)); display: grid; gap: 8px; pointer-events: none; }
+.toast { pointer-events: auto; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 10px; padding: 10px 12px; border-radius: 8px; background: var(--ink); color: var(--paper); box-shadow: 0 6px 24px rgba(0, 0, 0, .28); font-size: 14px; }
+.toast b { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; opacity: .8; }
+.toast p { margin: 0; grid-column: 1; }
+.toast .x { grid-column: 2; grid-row: 1 / span 2; align-self: start; font: inherit; font-size: 20px; line-height: 1; background: none; border: 0; color: inherit; cursor: pointer; padding: 0 4px; }
+
+/* Timeline */
+main { padding-block: 6px 28px; display: grid; gap: 26px; }
+.slot { display: grid; gap: 12px; scroll-margin-top: 12px; }
+.slot-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px; border-top: 2px solid var(--ink); padding-top: 8px; }
+.slot-time { margin: 0; font-family: var(--font-display); font-weight: 700; font-size: 2rem; line-height: 1; font-variant-numeric: tabular-nums; }
+.slot-et { font-size: 14px; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.pill { font-size: 12px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; padding: 3px 8px; border-radius: 999px; border: 1px solid var(--rule); color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.pill[data-state="next"] { background: var(--live-tint); border-color: var(--live); color: var(--live); }
+.pill[data-state="closed"] { background: var(--surface); }
+.slot-count { margin-left: auto; font-size: 13px; color: var(--ink-2); }
+.races { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); gap: 12px; }
+
+.race { background: var(--surface); border: 1px solid var(--rule); border-radius: 6px; padding: 12px 14px; display: grid; gap: 9px; align-content: start; min-width: 0; }
+.race[data-won="D"] { border-color: var(--dem); background: var(--dem-tint); }
+.race[data-won="R"] { border-color: var(--rep); background: var(--rep-tint); }
+.race[data-won="I"] { border-color: var(--ind); background: var(--ind-tint); }
+.race-top { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 10px; }
+.office { font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-2); }
+.race h3 { margin: 0; font-family: var(--font-display); font-weight: 600; font-size: 1.45rem; line-height: 1.05; }
+.held { margin-left: auto; font-size: 12.5px; color: var(--ink-2); white-space: nowrap; }
+.cands { list-style: none; margin: 0; padding: 0; display: grid; gap: 3px; }
+.cands li { display: flex; gap: 8px; align-items: baseline; font-size: 15px; }
+.tag { flex: none; font-size: 11px; font-weight: 700; width: 20px; text-align: center; border-radius: 3px; padding: 1px 0; color: var(--surface); }
+.tag.d { background: var(--dem); } .tag.r { background: var(--rep); } .tag.i { background: var(--ind); }
+.inc { font-size: 12px; color: var(--ink-2); }
+.race[data-won] .cands li.lost { color: var(--ink-2); }
+.race[data-won] .cands li.won { font-weight: 700; }
+.ratings { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; margin: 0; padding-top: 8px; border-top: 1px solid var(--rule); }
+.ratings div { min-width: 0; }
+.ratings dt { font-size: 10.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-2); }
+.ratings dd { margin: 0; font-size: 13px; font-weight: 600; }
+.ratings dd.d { color: var(--dem); } .ratings dd.r { color: var(--rep); }
+.ratings small { font-weight: 500; color: var(--ink-2); }
+.note { margin: 0; font-size: 13px; color: var(--ink-2); }
+.race-foot { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; justify-content: space-between; padding-top: 2px; }
+.race-foot a { font-size: 13.5px; font-weight: 600; }
+.calls { display: inline-flex; gap: 6px; flex-wrap: wrap; }
+.calls button { font: inherit; font-size: 13px; font-weight: 700; padding: 6px 10px; border-radius: 4px; border: 1px solid currentColor; background: var(--surface); cursor: pointer; }
+.calls button.d { color: var(--dem); } .calls button.r { color: var(--rep); } .calls button.i { color: var(--ind); }
+.calls button.d:hover { background: var(--dem-tint); } .calls button.r:hover { background: var(--rep-tint); } .calls button.i:hover { background: var(--ind-tint); }
+.calls button.undo { color: var(--ink-2); border-color: var(--rule); font-weight: 600; }
+.calls button:disabled { opacity: .55; cursor: progress; }
+.verdict { font-size: 12px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; padding: 3px 8px; border-radius: 4px; color: var(--surface); }
+.verdict.d { background: var(--dem); } .verdict.r { background: var(--rep); } .verdict.i { background: var(--ind); }
+.empty { margin: 0; color: var(--ink-2); }
+.race.flash { outline: 3px solid var(--live); outline-offset: 2px; }
+.tag.o { background: var(--ink-2); }
+.cands.counted li { flex-wrap: wrap; row-gap: 4px; }
+.cname { min-width: 0; overflow-wrap: anywhere; }
+.cwin { font-size: 11px; font-weight: 700; color: var(--live); white-space: nowrap; }
+.vote { margin-left: auto; display: inline-flex; gap: 10px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.vote .v { color: var(--ink-2); font-size: 13.5px; }
+.vote .p { font-weight: 700; min-width: 3.3em; text-align: right; }
+.share { display: block; flex-basis: calc(100% - 28px); margin-left: 28px; height: 5px; border-radius: 3px; background: var(--rule); overflow: hidden; }
+.share i { display: block; height: 100%; }
+.share i.d { background: var(--dem); } .share i.r { background: var(--rep); } .share i.i { background: var(--ind); } .share i.o { background: var(--ink-2); }
+.count-meta, .nocount { margin: 0; font-size: 12.5px; color: var(--ink-2); }
+.count-meta { display: flex; flex-wrap: wrap; gap: 2px 10px; font-variant-numeric: tabular-nums; }
+.count-meta strong { color: var(--ink); }
+
+footer { border-top: 1px solid var(--rule); background: var(--surface); }
+footer .wrap { padding-block: 16px 24px; font-size: 13px; color: var(--ink-2); display: grid; gap: 8px; }
+footer p { margin: 0; max-width: 78ch; }
+@media (max-width: 560px) {
+  .clock { text-align: left; }
+  .sync { margin-left: 0; flex-basis: 100%; }
+  .slot-count { margin-left: 0; flex-basis: 100%; }
+}
+@media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
+</style>
+
+<header class="mast">
+  <div class="wrap">
+    <div>
+      <p class="eyebrow">U.S. general election · Tuesday, November 3, 2026</p>
+      <h1>Midterm Watch Desk</h1>
+    </div>
+    <div class="clock" aria-live="off">
+      <div class="clock-time" id="clock">--:--</div>
+      <div class="clock-sub" id="clock-sub">Your time</div>
+    </div>
+    <nav class="sources" aria-label="Live vote counts">
+      <span>Other live results:</span>
+      <a href="https://apnews.com/" target="_blank" rel="noopener">AP News ↗</a>
+      <a href="https://www.decisiondeskhq.com/" target="_blank" rel="noopener">Decision Desk HQ ↗</a>
+      <a href="https://www.bloomberg.com/graphics/2026-us-election-results/" target="_blank" rel="noopener">Bloomberg live map ↗</a>
+    </nav>
+  </div>
+</header>
+
+<div class="wrap">
+  <section class="board" id="board" aria-label="Calls so far"></section>
+  <section class="feed" aria-labelledby="feed-title">
+    <div class="feed-head">
+      <h2 id="feed-title">Latest updates</h2>
+      <span class="feed-status" id="feed-status"></span>
+    </div>
+    <ol id="feed-list"></ol>
+    <button type="button" class="link feed-more" id="feed-more" hidden></button>
+  </section>
+  <div class="controls">
+    <div class="search" role="search">
+      <input type="search" id="q" placeholder="Search state, seat or candidate" aria-label="Search races by state, seat or candidate" autocomplete="off" spellcheck="false">
+      <span class="match-count" id="match-count" aria-live="polite"></span>
+    </div>
+    <button type="button" class="btn" id="reload" disabled>↻ Reload</button>
+    <div class="seg" role="group" aria-label="Show races">
+      <button type="button" id="f-all" data-filter="all">All</button>
+      <button type="button" id="f-sen" data-filter="sen">Senate</button>
+      <button type="button" id="f-gov" data-filter="gov">Governors</button>
+      <button type="button" id="f-house" data-filter="house">House</button>
+    </div>
+    <label class="check" for="hide-called"><input type="checkbox" id="hide-called"> Hide called races</label>
+    <button type="button" class="jump" id="jump">Jump to the latest closing</button>
+    <span class="sync" id="sync" data-mode="connecting" role="status">Loading saved calls…</span>
+  </div>
+  <p class="msg" id="msg" hidden role="alert"></p>
+</div>
+
+<main class="wrap" id="timeline"></main>
+<div class="toasts" id="toasts" aria-live="polite"></div>
+
+<footer>
+  <div class="wrap">
+    <p><strong>What's on the desk.</strong> Senate and governor races that Cook Political Report, Inside Elections or Sabato's Crystal Ball rate Toss-up, Tilt or Lean, plus the 18 House seats Cook rates Toss-up. Ratings as compiled on Wikipedia on Nov 3: Cook Nov 2 (governors Oct 29), Inside Elections Oct 29, Sabato Nov 2.</p>
+    <p><strong>Times.</strong> Each slot is the last poll close that gates a call: a state's final close for Senate and governor, the district's own close for House seats. Closing times were cross-checked between pollcheck.co.uk and political.org. Results can lag the close by hours, and close races in mail-heavy states can take days.</p>
+    <p><strong>Live counts.</strong> Vote counts come from <a href="https://www.civicapi.org/" target="_blank" rel="noopener">civicAPI</a>, a free results API. A checker run from a Claude session asks it about every state on this desk every 3 minutes and writes the numbers here, so counts trail civicAPI by a few minutes and stop when that session stops. “Reporting” is civicAPI's percent_reporting, which may count precincts rather than votes. Shares are of the votes for the candidates civicAPI lists. Expected totals appear only where civicAPI publishes them. A “✓ civicAPI” mark is civicAPI's winner flag, not an AP call.</p>
+    <p><strong>Tallies.</strong> Before the election the Senate stood at 53 R, 45 D and 2 independents who caucus with Democrats; 51 seats is a majority. The Senate net change counts only the races on this desk and assumes every other seat stays with its party. The tallies count only the calls you mark here.</p>
+  </div>
+</footer>
+
+<script>
+"use strict";
+const RACES = [{"id": "sen-AK", "office": "sen", "state": "AK", "label": "Alaska", "special": false, "incumbent": "Dan Sullivan", "incParty": "R", "status": "Incumbent advanced to general", "cands": [{"name": "Mary Peltola", "party": "D"}, {"name": "Dan S. Sullivan", "party": "R"}], "ratings": {"cook": "Tossup", "ie": "Tossup", "sabato": "Lean D (flip)"}, "close": "2026-11-04T01:00:00-05:00", "link": "https://www.elections.alaska.gov/election-results/", "closeNote": "Most of Alaska closes at midnight ET; the Aleutians at 1 AM.", "note": "Top-four primary and ranked-choice general; final tabulation can take two weeks."}, {"id": "sen-IA", "office": "sen", "state": "IA", "label": "Iowa", "special": false, "incumbent": "Joni Ernst", "incParty": "R", "status": "Incumbent retiring", "cands": [{"name": "Ashley Hinson", "party": "R"}, {"name": "Josh Turek", "party": "D"}], "ratings": {"cook": "Tossup", "ie": "Tossup", "sabato": "Lean R"}, "close": "2026-11-03T21:00:00-05:00", "link": "https://electionresults.iowa.gov/", "closeNote": "", "note": ""}, {"id": "sen-KS", "office": "sen", "state": "KS", "label": "Kansas", "special": false, "incumbent": "Roger Marshall", "incParty": "R", "status": "Incumbent renominated", "cands": [{"name": "Adam Hamilton", "party": "D"}, {"name": "Roger Marshall", "party": "R"}], "ratings": {"cook": "Tossup", "ie": "Tossup", "sabato": "Lean D (flip)"}, "close": "2026-11-03T21:00:00-05:00", "link": "https://sos.ks.gov/elections/election-results.html", "closeNote": "Eastern Kansas closes at 8 ET, the Mountain-time west at 9.", "note": ""}, {"id": "sen-LA", "office": "sen", "state": "LA", "label": "Louisiana", "special": false, "incumbent": "Bill Cassidy", "incParty": "R", "status": "Incumbent lost renomination", "cands": [{"name": "Jamie Davis", "party": "D"}, {"name": "Julia Letlow", "party": "R"}], "ratings": {"cook": "Solid R", "ie": "Likely R", "sabato": "Lean R"}, "close": "2026-11-03T21:00:00-05:00", "link": "https://voterportal.sos.la.gov/graphical", "closeNote": "", "note": ""}, {"id": "sen-ME", "office": "sen", "state": "ME", "label": "Maine", "special": false, "incumbent": "Susan Collins", "incParty": "R", "status": "Incumbent renominated", "cands": [{"name": "Susan Collins", "party": "R"}, {"name": "Troy Jackson", "party": "D"}], "ratings": {"cook": "Tossup", "ie": "Tossup", "sabato": "Lean D (flip)"}, "close": "2026-11-03T20:00:00-05:00", "link": "https://www.maine.gov/sos/elections-voting/election-results-data", "closeNote": "", "note": "Ranked-choice: if no one tops 50%, the instant runoff can take days."}, {"id": "sen-MI", "office": "sen", "state": "MI", "label": "Michigan", "special": false, "incumbent": "Gary Peters", "incParty": "D", "status": "Incumbent retiring", "cands": [{"name": "Abdul El-Sayed", "party": "D"}, {"name": "Mike Rogers", "party": "R"}], "ratings": {"cook": "Lean D", "ie": "Tilt D", "sabato": "Lean D"}, "close": "2026-11-03T21:00:00-05:00", "link": "https://www.michigan.gov/sos/elections/election-results-and-data", "closeNote": "Most of Michigan closes at 8 ET; four Central-time Upper Peninsula counties at 9.", "note": ""}, {"id": "sen-MN", "office": "sen", "state": "MN", "label": "Minnesota", "special": false, "incumbent": "Tina Smith", "incParty": "D", "status": "Incumbent retiring", "cands": [{"name": "Peggy Flanagan", "party": "D"}, {"name": "Michele Tafoya", "party": "R"}], "ratings": {"cook": "Lean D", "ie": "Lean D", "sabato": "Likely D"}, "close": "2026-11-03T21:00:00-05:00", "link": "https://electionresults.sos.mn.gov/", "closeNote": "", "note": ""}, {"id": "sen-NE", "office": "sen", "state": "NE", "label": "Nebraska", "special": false, "incumbent": "Pete Ricketts", "incParty": "R", "status": "Incumbent renominated", "cands": [{"name": "Dan Osborn", "party": "I"}, {"name": "Pete Ricketts", "party": "R"}], "ratings": {"cook": "Lean R", "ie": "Tilt R", "sabato": "Lean R"}, "close": "2026-11-03T21:00:00-05:00", "link": "https://electionresults.nebraska.gov/", "closeNote": "", "note": "No Democrat on the ballot; independent Dan Osborn is the challenger."}, {"id": "sen-NH", "office": "sen", "state": "NH", "label": "New Hampshire", "special": false, "incumbent": "Jeanne Shaheen", "incParty": "D", "status": "Incumbent retiring", "cands": [{"name": "Chris Pappas", "party": "D"}, {"name": "John E. Sununu", "party": "R"}], "ratings": {"cook": "Lean D", "ie": "Tilt D", "sabato": "Likely D"}, "close": "2026-11-03T20:00:00-05:00", "link": "https://www.sos.nh.gov/elections/elections/election-results", "closeNote": "Some New Hampshire towns close at 7 ET; the rest by 8.", "note": ""}, {"id": "sen-NC", "office": "sen", "state": "NC", "label": "North Carolina", "special": false, "incumbent": "Thom Tillis", "incParty": "R", "status": "Incumbent retiring", "cands": [{"name": "Roy Cooper", "party": "D"}, {"name": "Michael Whatley", "party": "R"}], "ratings": {"cook": "Likely D (flip)", "ie": "Lean D (flip)", "sabato": "Likely D (flip)"}, "close": "2026-11-03T19:30:00-05:00", "link": "https://er.ncsbe.gov/", "closeNote": "", "note": ""}, {"id": "sen-OH", "office": "sen", "state": "OH", "label": "Ohio", "special": true, "incumbent": "Jon Husted", "incParty": "R", "status": "Interim appointee nominated", "cands": [{"name": "Sherrod Brown", "party": "D"}, {"name": "Jon Husted", "party": "R"}], "ratings": {"cook": "Tossup", "ie": "Tilt D (flip)", "sabato": "Lean D (flip)"}, "close": "2026-11-03T19:30:00-05:00", "link": "https://liveresults.ohiosos.gov/", "closeNote": "", "note": "Special election for the rest of the term."}, {"id": "sen-SC", "office": "sen", "state": "SC", "label": "South Carolina", "special": false, "incumbent": "Darline Graham", "incParty": "R", "status": "Interim appointee nominated in runoff", "cands": [{"name": "Annie Andrews", "party": "D"}, {"name": "Darline Graham", "party": "R"}], "ratings": {"cook": "Lean R", "ie": "Tilt R", "sabato": "Lean R"}, "close": "2026-11-03T19:00:00-05:00", "link": "https://scvotes.gov/elections-statistics/election-results/", "closeNote": "", "note": "Incumbent was appointed in 2026."}, {"id": "sen-TX", "office": "sen", "state": "TX", "label": "Texas", "special": false, "incumbent": "John Cornyn", "incParty": "R", "status": "Incumbent lost renomination in runoff", "cands": [{"name": "Ken Paxton", "party": "R"}, {"name": "James Talarico", "party": "D"}], "ratings": {"cook": "Tossup", "ie": "Tilt D (flip)", "sabato": "Lean D (flip)"}, "close": "2026-11-03T21:00:00-05:00", "link": "https://results.texas-election.com/races", "closeNote": "Most of Texas closes at 8 ET; El Paso area at 9.", "note": ""}, {"id": "gov-AK", "office": "gov", "state": "AK", "label": "Alaska", "incumbent": "Mike Dunleavy", "incParty": "R", "status": "Incumbent term-limited", "cands": [{"name": "Dave Bronson", "party": "R"}, {"name": "Jonathan Kreiss-Tomkins", "party": "D"}, {"name": "Treg Taylor", "party": "R"}, {"name": "Bernadette Wilson", "party": "R"}], "ratings": {"cook": "Lean D (flip)", "ie": "Tilt D (flip)", "sabato": "Likely D (flip)"}, "close": "2026-11-04T01:00:00-05:00", "link": "https://www.elections.alaska.gov/election-results/", "closeNote": "Most of Alaska closes at midnight ET; the Aleutians at 1 AM.", "note": "Top-four primary and ranked-choice general; final tabulation can take two weeks."}, {"id": "gov-AZ", "office": "gov", "state": "AZ", "label": "Arizona", "incumbent": "Katie Hobbs", "incParty": "D", "status": "Incumbent renominated", "cands": [{"name": "Andy Biggs", "party": "R"}, {"name": "Katie Hobbs", "party": "D"}], "ratings": {"cook": "Likely D", "ie": "Tilt D", "sabato": "Likely D"}, "close": "2026-11-03T21:00:00-05:00", "link": "https://results.arizona.vote/", "closeNote": "", "note": ""}, {"id": "gov-FL", "office": "gov", "state": "FL", "label": "Florida", "incumbent": "Ron DeSantis", "incParty": "R", "status": "Incumbent term-limited", "cands": [{"name": "Byron Donalds", "party": "R"}, {"name": "David Jolly", "party": "D"}], "ratings": {"cook": "Lean R", "ie": "Lean R", "sabato": "Lean R"}, "close": "2026-11-03T20:00:00-05:00", "link": "https://results.elections.myflorida.com/", "closeNote": "Most of Florida closes at 7 ET; the Central-time Panhandle at 8.", "note": ""}, {"id": "gov-GA", "office": "gov", "state": "GA", "label": "Georgia", "incumbent": "Brian Kemp", "incParty": "R", "status": "Incumbent term-limited", "cands": [{"name": "Keisha Lance Bottoms", "party": "D"}, {"name": "Rick Jackson", "party": "R"}], "ratings": {"cook": "Tossup", "ie": "Tilt D (flip)", "sabato": "Lean D (flip)"}, "close": "2026-11-03T19:00:00-05:00", "link": "https://results.sos.ga.gov/results/public/Georgia", "closeNote": "", "note": "Georgia requires a majority; under 50% goes to a runoff."}, {"id": "gov-IA", "office": "gov", "state": "IA", "label": "Iowa", "incumbent": "Kim Reynolds", "incParty": "R", "status": "Incumbent retiring", "cands": [{"name": "Zach Lahn", "party": "R"}, {"name": "Rob Sand", "party": "D"}], "ratings": {"cook": "Lean D (flip)", "ie": "Lean D (flip)", "sabato": "Lean D (flip)"}, "close": "2026-11-03T21:00:00-05:00", "link": "https://electionresults.iowa.gov/", "closeNote": "", "note": ""}, {"id": "gov-KS", "office": "gov", "state": "KS", "label": "Kansas", "incumbent": "Laura Kelly", "incParty": "D", "status": "Incumbent term-limited", "cands": [{"name": "Cindy Holscher", "party": "D"}, {"name": "Ty Masterson", "party": "R"}], "ratings": {"cook": "Tossup", "ie": "Tilt R (flip)", "sabato": "Lean R (flip)"}, "close": "2026-11-03T21:00:00-05:00", "link": "https://sos.ks.gov/elections/election-results.html", "closeNote": "Eastern Kansas closes at 8 ET, the Mountain-time west at 9.", "note": ""}, {"id": "gov-MI", "office": "gov", "state": "MI", "label": "Michigan", "incumbent": "Gretchen Whitmer", "incParty": "D", "status": "Incumbent term-limited", "cands": [{"name": "Jocelyn Benson", "party": "D"}, {"name": "John James", "party": "R"}], "ratings": {"cook": "Lean D", "ie": "Lean D", "sabato": "Likely D"}, "close": "2026-11-03T21:00:00-05:00", "link": "https://www.michigan.gov/sos/elections/election-results-and-data", "closeNote": "Most of Michigan closes at 8 ET; four Central-time Upper Peninsula counties at 9.", "note": ""}, {"id": "gov-NE", "office": "gov", "state": "NE", "label": "Nebraska", "incumbent": "Jim Pillen", "incParty": "R", "status": "Incumbent renominated", "cands": [{"name": "Jim Pillen", "party": "R"}, {"name": "Lynne Walz", "party": "D"}], "ratings": {"cook": "Lean R", "ie": "Likely R", "sabato": "Likely R"}, "close": "2026-11-03T21:00:00-05:00", "link": "https://electionresults.nebraska.gov/", "closeNote": "", "note": ""}, {"id": "gov-NV", "office": "gov", "state": "NV", "label": "Nevada", "incumbent": "Joe Lombardo", "incParty": "R", "status": "Incumbent renominated", "cands": [{"name": "Aaron Ford", "party": "D"}, {"name": "Joe Lombardo", "party": "R"}], "ratings": {"cook": "Tossup", "ie": "Tossup", "sabato": "Lean D (flip)"}, "close": "2026-11-03T22:00:00-05:00", "link": "https://silverstateelection.nv.gov/", "closeNote": "", "note": ""}, {"id": "gov-NH", "office": "gov", "state": "NH", "label": "New Hampshire", "incumbent": "Kelly Ayotte", "incParty": "R", "status": "Incumbent renominated", "cands": [{"name": "Kelly Ayotte", "party": "R"}, {"name": "Cinde Warmington", "party": "D"}], "ratings": {"cook": "Likely R", "ie": "Solid R", "sabato": "Lean R"}, "close": "2026-11-03T20:00:00-05:00", "link": "https://www.sos.nh.gov/elections/elections/election-results", "closeNote": "Some New Hampshire towns close at 7 ET; the rest by 8.", "note": ""}, {"id": "gov-OH", "office": "gov", "state": "OH", "label": "Ohio", "incumbent": "Mike DeWine", "incParty": "R", "status": "Incumbent term-limited", "cands": [{"name": "Amy Acton", "party": "D"}, {"name": "Vivek Ramaswamy", "party": "R"}], "ratings": {"cook": "Lean D (flip)", "ie": "Tilt D (flip)", "sabato": "Lean D (flip)"}, "close": "2026-11-03T19:30:00-05:00", "link": "https://liveresults.ohiosos.gov/", "closeNote": "", "note": ""}, {"id": "gov-OR", "office": "gov", "state": "OR", "label": "Oregon", "incumbent": "Tina Kotek", "incParty": "D", "status": "Incumbent renominated", "cands": [{"name": "Christine Drazan", "party": "R"}, {"name": "Tina Kotek", "party": "D"}], "ratings": {"cook": "Lean D", "ie": "Tilt D", "sabato": "Lean D"}, "close": "2026-11-03T23:00:00-05:00", "link": "https://results.oregonvotes.gov/", "closeNote": "Oregon votes by mail; ballots postmarked by today count if received within 7 days.", "note": ""}, {"id": "gov-TX", "office": "gov", "state": "TX", "label": "Texas", "incumbent": "Greg Abbott", "incParty": "R", "status": "Incumbent renominated", "cands": [{"name": "Greg Abbott", "party": "R"}, {"name": "Gina Hinojosa", "party": "D"}], "ratings": {"cook": "Lean R", "ie": "Tilt R", "sabato": "Lean R"}, "close": "2026-11-03T21:00:00-05:00", "link": "https://results.texas-election.com/races", "closeNote": "Most of Texas closes at 8 ET; El Paso area at 9.", "note": ""}, {"id": "gov-VT", "office": "gov", "state": "VT", "label": "Vermont", "incumbent": "Phil Scott", "incParty": "R", "status": "Incumbent renominated", "cands": [{"name": "Amanda Janoo", "party": "D"}, {"name": "Phil Scott", "party": "R"}], "ratings": {"cook": "Likely R", "ie": "Likely R", "sabato": "Lean R"}, "close": "2026-11-03T19:00:00-05:00", "link": "https://sos.vermont.gov/elections/election-info-resources/elections-results-data", "closeNote": "", "note": ""}, {"id": "gov-WI", "office": "gov", "state": "WI", "label": "Wisconsin", "incumbent": "Tony Evers", "incParty": "D", "status": "Incumbent retiring", "cands": [{"name": "David Crowley", "party": "D"}, {"name": "Tom Tiffany", "party": "R"}], "ratings": {"cook": "Lean D", "ie": "Tilt D", "sabato": "Lean D"}, "close": "2026-11-03T21:00:00-05:00", "link": "https://elections.wi.gov/elections/election-results", "closeNote": "", "note": ""}, {"id": "house-CA-22", "office": "house", "state": "CA", "label": "California 22", "district": "CA-22", "incumbent": "David Valadao", "incParty": "R", "cands": [{"name": "David Valadao", "party": "R"}, {"name": "Randy Villegas", "party": "D"}], "ratings": {"cook": "Tossup", "ie": "Tossup", "sabato": "Lean D (flip)"}, "close": "2026-11-03T23:00:00-05:00", "link": "https://electionresults.sos.ca.gov/", "closeNote": "", "note": ""}, {"id": "house-CO-5", "office": "house", "state": "CO", "label": "Colorado 5", "district": "CO-5", "incumbent": "Jeff Crank", "incParty": "R", "cands": [{"name": "Jeff Crank", "party": "R"}, {"name": "Jessica Killin", "party": "D"}], "ratings": {"cook": "Tossup", "ie": "Tossup", "sabato": "Lean D (flip)"}, "close": "2026-11-03T21:00:00-05:00", "link": "https://www.coloradosos.gov/pubs/elections/main.html", "closeNote": "", "note": ""}, {"id": "house-FL-14", "office": "house", "state": "FL", "label": "Florida 14", "district": "FL-14", "incumbent": "Kathy Castor", "incParty": "D", "cands": [{"name": "Mike Beltran", "party": "R"}, {"name": "Kathy Castor", "party": "D"}], "ratings": {"cook": "Tossup", "ie": "Tilt D", "sabato": "Lean D"}, "close": "2026-11-03T19:00:00-05:00", "link": "https://results.elections.myflorida.com/", "closeNote": "", "note": ""}, {"id": "house-FL-22", "office": "house", "state": "FL", "label": "Florida 22", "district": "FL-22", "incumbent": "New seat", "incParty": null, "cands": [{"name": "Casey Askar", "party": "R"}, {"name": "Pia Dandiya", "party": "D"}], "ratings": {"cook": "Tossup", "ie": "Tossup", "sabato": "Lean D"}, "close": "2026-11-03T19:00:00-05:00", "link": "https://results.elections.myflorida.com/", "closeNote": "", "note": ""}, {"id": "house-IA-2", "office": "house", "state": "IA", "label": "Iowa 2", "district": "IA-2", "incumbent": "Ashley Hinson (retiring)", "incParty": "R", "cands": [{"name": "Lindsay James", "party": "D"}, {"name": "Joe Mitchell", "party": "R"}], "ratings": {"cook": "Tossup", "ie": "Tossup", "sabato": "Lean D (flip)"}, "close": "2026-11-03T21:00:00-05:00", "link": "https://electionresults.iowa.gov/", "closeNote": "", "note": ""}, {"id": "house-KY-6", "office": "house", "state": "KY", "label": "Kentucky 6", "district": "KY-6", "incumbent": "Andy Barr (retiring)", "incParty": "R", "cands": [{"name": "Ralph Alvarado", "party": "R"}, {"name": "Zach Dembo", "party": "D"}], "ratings": {"cook": "Tossup", "ie": "Tossup", "sabato": "Lean R"}, "close": "2026-11-03T18:00:00-05:00", "link": "https://elect.ky.gov/results/Pages/default.aspx", "closeNote": "", "note": ""}, {"id": "house-MI-4", "office": "house", "state": "MI", "label": "Michigan 4", "district": "MI-4", "incumbent": "Bill Huizenga", "incParty": "R", "cands": [{"name": "Bill Huizenga", "party": "R"}, {"name": "Sean McCann", "party": "D"}], "ratings": {"cook": "Tossup", "ie": "Tossup", "sabato": "Lean D (flip)"}, "close": "2026-11-03T20:00:00-05:00", "link": "https://www.michigan.gov/sos/elections/election-results-and-data", "closeNote": "", "note": ""}, {"id": "house-MI-7", "office": "house", "state": "MI", "label": "Michigan 7", "district": "MI-7", "incumbent": "Tom Barrett", "incParty": "R", "cands": [{"name": "Tom Barrett", "party": "R"}, {"name": "William Lawrence", "party": "D"}], "ratings": {"cook": "Tossup", "ie": "Tossup", "sabato": "Lean D (flip)"}, "close": "2026-11-03T20:00:00-05:00", "link": "https://www.michigan.gov/sos/elections/election-results-and-data", "closeNote": "", "note": ""}, {"id": "house-MI-10", "office": "house", "state": "MI", "label": "Michigan 10", "district": "MI-10", "incumbent": "John James (retiring)", "incParty": "R", "cands": [{"name": "Mike Bouchard Jr.", "party": "R"}, {"name": "Christina Hines", "party": "D"}], "ratings": {"cook": "Tossup", "ie": "Tilt R", "sabato": "Lean D (flip)"}, "close": "2026-11-03T20:00:00-05:00", "link": "https://www.michigan.gov/sos/elections/election-results-and-data", "closeNote": "", "note": ""}, {"id": "house-MT-1", "office": "house", "state": "MT", "label": "Montana 1", "district": "MT-1", "incumbent": "Ryan Zinke (retiring)", "incParty": "R", "cands": [{"name": "Aaron Flint", "party": "R"}, {"name": "Sam Forstag", "party": "D"}], "ratings": {"cook": "Tossup", "ie": "Tossup", "sabato": "Lean D (flip)"}, "close": "2026-11-03T22:00:00-05:00", "link": "https://sosmt.gov/elections/results/", "closeNote": "", "note": ""}, {"id": "house-NY-17", "office": "house", "state": "NY", "label": "New York 17", "district": "NY-17", "incumbent": "Mike Lawler", "incParty": "R", "cands": [{"name": "Cait Conley", "party": "D"}, {"name": "Mike Lawler", "party": "R"}], "ratings": {"cook": "Tossup", "ie": "Tossup", "sabato": "Lean R"}, "close": "2026-11-03T21:00:00-05:00", "link": "https://results.elections.ny.gov/", "closeNote": "", "note": ""}, {"id": "house-NC-1", "office": "house", "state": "NC", "label": "North Carolina 1", "district": "NC-1", "incumbent": "Don Davis", "incParty": "D", "cands": [{"name": "Laurie Buckhout", "party": "R"}, {"name": "Don Davis", "party": "D"}], "ratings": {"cook": "Tossup", "ie": "Tilt D", "sabato": "Lean D"}, "close": "2026-11-03T19:30:00-05:00", "link": "https://er.ncsbe.gov/", "closeNote": "", "note": ""}, {"id": "house-OH-7", "office": "house", "state": "OH", "label": "Ohio 7", "district": "OH-7", "incumbent": "Max Miller", "incParty": "R", "cands": [{"name": "Max Miller", "party": "R"}, {"name": "Brian Poindexter", "party": "D"}], "ratings": {"cook": "Tossup", "ie": "Tilt D (flip)", "sabato": "Lean D (flip)"}, "close": "2026-11-03T19:30:00-05:00", "link": "https://liveresults.ohiosos.gov/", "closeNote": "", "note": ""}, {"id": "house-PA-1", "office": "house", "state": "PA", "label": "Pennsylvania 1", "district": "PA-1", "incumbent": "Brian Fitzpatrick", "incParty": "R", "cands": [{"name": "Brian Fitzpatrick", "party": "R"}, {"name": "Bob Harvie", "party": "D"}], "ratings": {"cook": "Tossup", "ie": "Tossup", "sabato": "Lean D (flip)"}, "close": "2026-11-03T20:00:00-05:00", "link": "https://www.electionreturns.pa.gov/", "closeNote": "", "note": ""}, {"id": "house-SC-1", "office": "house", "state": "SC", "label": "South Carolina 1", "district": "SC-1", "incumbent": "Nancy Mace (retiring)", "incParty": "R", "cands": [{"name": "Jenny Costa Honeycutt", "party": "R"}, {"name": "Nancy Lacore", "party": "D"}], "ratings": {"cook": "Tossup", "ie": "Tilt R", "sabato": "Lean R"}, "close": "2026-11-03T19:00:00-05:00", "link": "https://scvotes.gov/elections-statistics/election-results/", "closeNote": "", "note": ""}, {"id": "house-TX-15", "office": "house", "state": "TX", "label": "Texas 15", "district": "TX-15", "incumbent": "Monica De La Cruz", "incParty": "R", "cands": [{"name": "Monica De La Cruz", "party": "R"}, {"name": "Bobby Pulido", "party": "D"}], "ratings": {"cook": "Tossup", "ie": "Tilt D (flip)", "sabato": "Lean D (flip)"}, "close": "2026-11-03T20:00:00-05:00", "link": "https://results.texas-election.com/races", "closeNote": "", "note": ""}, {"id": "house-TX-35", "office": "house", "state": "TX", "label": "Texas 35", "district": "TX-35", "incumbent": "New seat", "incParty": null, "cands": [{"name": "Carlos De La Cruz", "party": "R"}, {"name": "Johnny Garcia", "party": "D"}], "ratings": {"cook": "Tossup", "ie": "Tossup", "sabato": "Lean D"}, "close": "2026-11-03T20:00:00-05:00", "link": "https://results.texas-election.com/races", "closeNote": "", "note": ""}, {"id": "house-VA-1", "office": "house", "state": "VA", "label": "Virginia 1", "district": "VA-1", "incumbent": "Rob Wittman", "incParty": "R", "cands": [{"name": "Shannon Taylor", "party": "D"}, {"name": "Rob Wittman", "party": "R"}], "ratings": {"cook": "Tossup", "ie": "Tilt R", "sabato": "Lean D (flip)"}, "close": "2026-11-03T19:00:00-05:00", "link": "https://www.elections.virginia.gov/results/", "closeNote": "", "note": ""}];
+const OFFICE = { sen: "Senate", gov: "Governor", house: "House" };
+const ORDER = { sen: 0, gov: 1, house: 2 };
+const PARTY_NAME = { D: "Democrat", R: "Republican", I: "Independent", O: "Other party" };
+const RACE_BY_ID = new Map(RACES.map(r => [r.id, r]));
+const DEM_CAUCUS_BEFORE = 47;
+const FEED_SHORT = 6, FEED_LONG = 60;
+
+const state = {
+  calls: {}, results: {}, resultsMeta: null, feed: [],
+  filter: "all", hideCalled: false, query: "", feedOpen: false,
+  mode: "connecting", canWrite: true, pending: new Set(), lastSync: 0,
+};
+let store = null;
+
+const $ = id => document.getElementById(id);
+function h(tag, attrs, ...kids) {
+  const el = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs || {})) {
+    if (v == null || v === false) continue;
+    if (k === "class") el.className = v;
+    else if (k === "text") el.textContent = v;
+    else el.setAttribute(k, v === true ? "" : v);
+  }
+  for (const kid of kids.flat()) if (kid != null && kid !== false) el.append(kid);
+  return el;
+}
+
+/* ---------- time ---------- */
+const fmtLocal = new Intl.DateTimeFormat(undefined, { hour: "numeric", minute: "2-digit" });
+const fmtET = new Intl.DateTimeFormat("en-US", { hour: "numeric", minute: "2-digit", timeZone: "America/New_York" });
+const tzName = (() => {
+  try { return new Intl.DateTimeFormat(undefined, { timeZoneName: "short" }).formatToParts(new Date()).find(p => p.type === "timeZoneName")?.value || ""; }
+  catch { return ""; }
+})();
+const viewerIsET = (() => {
+  try { return Intl.DateTimeFormat().resolvedOptions().timeZone === "America/New_York"; } catch { return false; }
+})();
+function rel(ms) {
+  const m = Math.round(Math.abs(ms) / 60000);
+  if (m < 1) return "under a minute";
+  if (m < 60) return `${m} min`;
+  const hrs = Math.floor(m / 60), rest = m % 60;
+  return rest ? `${hrs} h ${rest} min` : `${hrs} h`;
+}
+const SLOTS = [...new Set(RACES.map(r => r.close))].sort((a, b) => Date.parse(a) - Date.parse(b));
+function slotStatus(close, now) {
+  const t = Date.parse(close);
+  if (t <= now) return { state: "closed", text: `Polls closed ${rel(now - t)} ago` };
+  const next = SLOTS.find(s => Date.parse(s) > now);
+  return { state: next === close ? "next" : "later", text: `${next === close ? "Next · " : ""}closes in ${rel(t - now)}` };
+}
+
+const fmtInt = new Intl.NumberFormat("en-US");
+const fmtCompact = new Intl.NumberFormat("en-US", { notation: "compact", maximumFractionDigits: 1 });
+const fmtShare = v => `${v === 0 || v >= 99.95 ? v.toFixed(0) : v.toFixed(1)}%`;
+const fmtAt = iso => fmtLocal.format(new Date(iso));
+
+/* ---------- search ---------- */
+const norm = s => String(s ?? "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+const OFFICE_WORDS = { sen: "senate senator", gov: "governor gubernatorial", house: "house congress congressional district representative" };
+const RACE_WORDS = new Map(RACES.map(r => [r.id, norm([r.label, r.state, r.district, OFFICE_WORDS[r.office],
+  r.special ? "special" : "", r.incumbent, ...r.cands.map(c => c.name)].join(" ")).split(" ")]));
+function queryTokens() { return norm(state.query).split(" ").filter(Boolean); }
+function matchesQuery(r, toks) {
+  if (!toks.length) return true;
+  const words = RACE_WORDS.get(r.id).concat(...(state.results[r.id]?.cands || []).map(c => norm(c.name).split(" ")));
+  return toks.every(t => words.some(w => w.startsWith(t)));
+}
+
+/* ---------- derived ---------- */
+function shortName(r) { return r.office === "house" ? r.district : `${r.state} ${r.office === "sen" ? "Sen" : "Gov"}`; }
+function longName(r) { return r.office === "house" ? `House ${r.district}` : `${r.label} ${OFFICE[r.office]}${r.special ? " (special)" : ""}`; }
+function inFilter(r) { return state.filter === "all" || r.office === state.filter; }
+function outcome(r) {
+  const c = state.calls[r.id];
+  if (!c) return null;
+  return { winner: c.winner, at: c.at, flip: Boolean(r.incParty) && c.winner !== r.incParty };
+}
+function isOpen(r) { return /retir|term-limited|lost renomination/i.test(r.status || "") || /retiring/i.test(r.incumbent || ""); }
+function isIncumbent(r, c) {
+  if (isOpen(r) || !r.incParty || c.party !== r.incParty) return false;
+  const last = c.name.replace(/ (Jr\.|Sr\.|III|II)$/, "").split(" ").pop();
+  return (r.incumbent || "").includes(last);
+}
+function heldText(r) {
+  if (!r.incParty) return "New seat";
+  return `${r.incParty}-held${isOpen(r) ? " · open" : ""}`;
+}
+function ratingCell(label, value) {
+  const flip = /\(flip\)/.test(value);
+  const text = value.replace(" (flip)", "").replace(/^Tossup$/, "Toss-up");
+  const cls = /^Toss/.test(text) ? "" : /\bD$/.test(text) ? "d" : /\bR$/.test(text) ? "r" : "";
+  return h("div", {}, h("dt", { text: label }), h("dd", { class: cls }, text, flip ? h("small", { text: " flip" }) : null));
+}
+
+/* ---------- render ---------- */
+function renderBoard() {
+  const board = $("board");
+  const groups = [
+    { key: "sen", title: "Senate", sub: "races on the desk" },
+    { key: "gov", title: "Governors", sub: "races on the desk" },
+    { key: "house", title: "House toss-ups", sub: "Cook toss-ups" },
+  ];
+  board.replaceChildren(...groups.map(g => {
+    const rs = RACES.filter(r => r.office === g.key);
+    const outs = rs.map(outcome).filter(Boolean);
+    const n = { D: 0, R: 0, I: 0 };
+    outs.forEach(o => { n[o.winner]++; });
+    let dGain = 0, rGain = 0, iGain = 0;
+    rs.forEach(r => {
+      const o = outcome(r);
+      if (!o || !o.flip) return;
+      if (o.winner === "D") dGain++; else if (o.winner === "R") rGain++; else iGain++;
+    });
+    const total = rs.length, pend = total - outs.length;
+    const seg = (cls, k) => k ? h("i", { class: cls, style: `width:${(k / total) * 100}%`, title: `${k}` }) : null;
+    const lines = [];
+    const won = h("p", { class: "tally-line" },
+      h("b", { class: "d", text: `D ${n.D}` }), " · ", h("b", { class: "r", text: `R ${n.R}` }),
+      n.I ? [" · ", h("b", { class: "i", text: `I ${n.I}` })] : null,
+      ` · ${pend} to call`);
+    lines.push(won);
+    if (g.key === "sen") {
+      const net = dGain - rGain;
+      const seats = DEM_CAUCUS_BEFORE + net;
+      lines.push(h("p", { class: "tally-line" },
+        "Net Dem change: ", h("b", { class: net > 0 ? "d" : net < 0 ? "r" : "", text: net > 0 ? `+${net}` : `${net}` }),
+        ` → ${seats} seats`, iGain ? ` (plus ${iGain} independent gain)` : ""));
+      lines.push(h("p", { class: "tally-note", text: "Democrats need +4 for 51; +3 makes it 50–50." }));
+    } else if (g.key === "gov") {
+      lines.push(h("p", { class: "tally-line" }, "Flips: ", h("b", { class: "d", text: `${dGain} to D` }), " · ", h("b", { class: "r", text: `${rGain} to R` })));
+    } else {
+      lines.push(h("p", { class: "tally-line" }, "Flips: ", h("b", { class: "d", text: `${dGain} to D` }), " · ", h("b", { class: "r", text: `${rGain} to R` })));
+    }
+    return h("article", { class: "tally" },
+      h("h2", { text: g.title }),
+      h("div", { class: "tally-big" }, h("strong", { text: `${outs.length}/${total}` }), h("span", { text: "called" })),
+      h("div", { class: "bar", role: "img", "aria-label": `${n.D} Democratic, ${n.R} Republican${n.I ? `, ${n.I} independent` : ""}, ${pend} not called` },
+        seg("d", n.D), seg("i", n.I), seg("r", n.R)),
+      ...lines);
+  }));
+}
+
+function raceCard(r) {
+  const o = outcome(r);
+  const parties = [...new Set(r.cands.map(c => c.party))].sort((a, b) => "DIR".indexOf(a) - "DIR".indexOf(b));
+  const cands = [...r.cands].sort((a, b) => "DIR".indexOf(a.party) - "DIR".indexOf(b.party));
+  const pending = state.pending.has(r.id);
+  const title = r.office === "house" ? r.label.replace(/ (\d+)$/, " $1") : r.label;
+  const officeText = r.office === "house" ? `House · ${r.district}` : `${OFFICE[r.office]}${r.special ? " · special" : ""}`;
+
+  const top = h("div", { class: "race-top" },
+    h("span", { class: "office", text: officeText }),
+    h("h3", { text: title }),
+    h("span", { class: "held", text: heldText(r) }));
+
+  const res = state.results[r.id];
+  const rowClass = c => o ? (o.winner === c.party ? "won" : "lost") : null;
+  const tag = c => h("span", { class: `tag ${c.party.toLowerCase()}`, text: c.party, "aria-label": PARTY_NAME[c.party] });
+  const list = res
+    ? h("ul", { class: "cands counted" }, res.cands.map(c => {
+        const share = c.pct ?? (res.total ? (c.votes / res.total) * 100 : 0);
+        return h("li", { class: rowClass(c) },
+          tag(c),
+          h("span", { class: "cname", text: c.name }),
+          isIncumbent(r, c) ? h("span", { class: "inc", text: "incumbent" }) : null,
+          c.winner ? h("span", { class: "cwin", text: "✓ civicAPI", title: "civicAPI marks this candidate the winner" }) : null,
+          h("span", { class: "vote" }, h("span", { class: "v", text: fmtInt.format(c.votes) }), h("span", { class: "p", text: fmtShare(share) })),
+          h("span", { class: "share", "aria-hidden": "true" }, h("i", { class: c.party.toLowerCase(), style: `width:${Math.min(100, share).toFixed(1)}%` })));
+      }))
+    : h("ul", { class: "cands" }, cands.map(c => h("li", { class: rowClass(c) },
+        tag(c),
+        h("span", { text: c.name }),
+        isIncumbent(r, c) ? h("span", { class: "inc", text: "incumbent" }) : null)));
+
+  const ratings = h("dl", { class: "ratings" },
+    ratingCell("Cook", r.ratings.cook), ratingCell("Inside Elec.", r.ratings.ie), ratingCell("Sabato", r.ratings.sabato));
+
+  const notes = [r.note, r.closeNote].filter(Boolean).map(t => h("p", { class: "note", text: t }));
+
+  let controls;
+  if (o) {
+    const when = o.at ? ` at ${fmtLocal.format(new Date(o.at))}` : "";
+    controls = h("div", { class: "calls" },
+      h("span", { class: `verdict ${o.winner.toLowerCase()}`, text: `${o.winner} win${o.flip ? " · flip" : ""}`, title: `Marked${when}` }),
+      state.canWrite ? h("button", { type: "button", class: "undo", "data-id": r.id, "data-act": "undo", disabled: pending, text: "Undo" }) : null);
+  } else if (state.canWrite) {
+    controls = h("div", { class: "calls", role: "group", "aria-label": `Mark the winner in ${title}` },
+      parties.map(p => h("button", { type: "button", class: p.toLowerCase(), "data-id": r.id, "data-act": p, disabled: pending,
+        "aria-label": `Mark ${PARTY_NAME[p]} win in ${title}`, text: `${p} wins` })));
+  } else {
+    controls = h("span", { class: "note", text: "Not called" });
+  }
+
+  const foot = h("div", { class: "race-foot" },
+    h("a", { href: r.link, target: "_blank", rel: "noopener", text: `${r.state} official results ↗` }),
+    controls);
+
+  return h("article", { class: "race", id: `race-${r.id}`, "data-won": o ? o.winner : null }, top, list, countMeta(r, res), ratings, ...notes, foot);
+}
+
+function countMeta(r, res) {
+  if (!res) {
+    const closed = Date.parse(r.close) <= Date.now();
+    return h("p", { class: "nocount", text: closed ? "No live count yet" : "Polls not closed yet" });
+  }
+  const bits = [];
+  if (res.reporting != null) bits.push(h("span", {}, h("strong", { text: `${Math.round(res.reporting)}%` }), " reporting"));
+  if (res.total != null) bits.push(h("span", { text: `${fmtInt.format(res.total)} votes` }));
+  if (res.expected) {
+    bits.push(h("span", { text: `expected ~${fmtCompact.format(res.expected)}` }));
+    if (res.total != null) bits.push(h("span", {}, h("strong", { text: `≈${Math.min(100, Math.round((res.total / res.expected) * 100))}%` }), " of expected counted"));
+  } else {
+    bits.push(h("span", { text: "expected total n/a" }));
+  }
+  if (res.updated) bits.push(h("span", { text: `as of ${fmtAt(res.updated)}` }));
+  return h("p", { class: "count-meta" }, ...bits);
+}
+
+function renderTimeline() {
+  const now = Date.now();
+  const main = $("timeline");
+  const sections = [];
+  const toks = queryTokens();
+  let shown = 0;
+  for (const close of SLOTS) {
+    const rs = RACES
+      .filter(r => r.close === close)
+      .filter(inFilter)
+      .filter(r => !(state.hideCalled && state.calls[r.id]))
+      .filter(r => matchesQuery(r, toks))
+      .sort((a, b) => ORDER[a.office] - ORDER[b.office] || a.label.localeCompare(b.label, undefined, { numeric: true }));
+    if (!rs.length) continue;
+    shown += rs.length;
+    const st = slotStatus(close, now);
+    const d = new Date(close);
+    const all = RACES.filter(r => r.close === close && (state.filter === "all" || r.office === state.filter));
+    const called = all.filter(r => state.calls[r.id]).length;
+    sections.push(h("section", { class: "slot", id: `slot-${d.getTime()}`, "data-close": close, "aria-label": `Polls closing ${fmtET.format(d)} Eastern` },
+      h("div", { class: "slot-head" },
+        h("h2", { class: "slot-time", text: fmtLocal.format(d) }),
+        h("span", { class: "slot-et", text: viewerIsET ? "Eastern" : `${fmtET.format(d)} ET` }),
+        h("span", { class: "pill", "data-state": st.state, text: st.text }),
+        h("span", { class: "slot-count", text: `${called} of ${all.length} called` })),
+      h("div", { class: "races" }, rs.map(raceCard))));
+  }
+  if (!sections.length) {
+    sections.push(h("p", { class: "empty", text: toks.length
+      ? `No races match “${state.query.trim()}”${state.filter !== "all" || state.hideCalled ? " with the current filters" : ""}.`
+      : "Every race in this view has been called. Untick “Hide called races” to see them." }));
+  }
+  main.replaceChildren(...sections);
+  $("match-count").textContent = toks.length ? `${shown} ${shown === 1 ? "race" : "races"}` : "";
+}
+
+/* ---------- feed + toasts ---------- */
+const KIND_LABEL = { first: "First votes", lead: "Lead change", winner: "Winner", count: "Count", info: "Update", call: "Your call", close: "Polls closed" };
+function feedItems() {
+  const now = Date.now();
+  const items = [];
+  for (const f of state.feed) {
+    const r = f.race ? RACE_BY_ID.get(f.race) : null;
+    if (r && !inFilter(r)) continue;
+    items.push(f);
+  }
+  for (const [id, c] of Object.entries(state.calls)) {
+    const r = RACE_BY_ID.get(id);
+    if (!c.at || !inFilter(r)) continue;
+    items.push({ id: `call-${id}`, at: c.at, race: id, kind: "call", text: `you marked a ${PARTY_NAME[c.winner]} win${outcome(r)?.flip ? " (flip)" : ""}` });
+  }
+  for (const close of SLOTS) {
+    if (Date.parse(close) > now) continue;
+    const rs = RACES.filter(r => r.close === close && inFilter(r));
+    if (rs.length) items.push({ id: `close-${close}`, at: close, race: null, kind: "close", text: rs.map(shortName).join(", ") });
+  }
+  return items.sort((a, b) => Date.parse(b.at) - Date.parse(a.at));
+}
+function feedStatusText() {
+  if (state.mode === "local") return "Live counts need the shared database, which this view doesn't have.";
+  const m = state.resultsMeta;
+  if (!m || m.status === "waiting") return "Live counts: waiting for the first numbers from civicAPI.";
+  if (m.status === "down") return `Live counts: civicAPI hasn't answered${m.since ? ` since ${fmtAt(m.since)}` : ""}, so numbers may be stale.`;
+  if (m.status === "partial") {
+    const of = m.statesOk != null && m.statesTotal ? `${m.statesOk} of ${m.statesTotal}` : "some";
+    return `Live counts: civicAPI answered for ${of} states${m.checked ? ` at ${fmtAt(m.checked)}` : ""}; the rest failed, so some counts are missing or stale.`;
+  }
+  return `Live counts from civicAPI${m.updated ? ` as of ${fmtAt(m.updated)}` : ""}${m.checked ? ` · checked ${fmtAt(m.checked)}` : ""}.`;
+}
+function feedText(it) {
+  const r = it.race ? RACE_BY_ID.get(it.race) : null;
+  return [h("span", { class: "kind", text: KIND_LABEL[it.kind] || "Update" }),
+    r ? h("button", { type: "button", class: "link", "data-reveal": r.id, text: longName(r) }) : null,
+    r ? ": " : "", it.text];
+}
+function renderFeed() {
+  const items = feedItems();
+  $("feed-status").textContent = feedStatusText();
+  const shown = items.slice(0, state.feedOpen ? FEED_LONG : FEED_SHORT);
+  $("feed-list").replaceChildren(...(shown.length
+    ? shown.map(it => h("li", { "data-kind": it.kind }, h("time", { datetime: it.at, text: fmtAt(it.at) }), h("p", {}, ...feedText(it))))
+    : [h("li", { class: "feed-empty", text: "Nothing yet. Updates appear here as polls close and counts come in." })]));
+  const more = $("feed-more");
+  more.hidden = items.length <= FEED_SHORT;
+  more.textContent = state.feedOpen ? "Show fewer" : `Show ${Math.min(items.length, FEED_LONG)} updates`;
+}
+function toast(it) {
+  const box = $("toasts");
+  while (box.children.length >= 3) box.firstElementChild.remove();
+  const el = h("div", { class: "toast" },
+    h("b", { text: KIND_LABEL[it.kind] || "Update" }),
+    h("p", {}, ...feedText(it).slice(1)),
+    h("button", { type: "button", class: "x", "aria-label": "Dismiss", text: "×" }));
+  box.append(el);
+  setTimeout(() => el.remove(), 12000);
+}
+function announce(items) {
+  const recent = items.filter(it => Date.now() - Date.parse(it.at) < 20 * 60000 && (!it.race || inFilter(RACE_BY_ID.get(it.race))));
+  if (recent.length > 3) toast({ kind: "info", race: null, text: `${recent.length} new updates. See Latest updates.` });
+  else recent.forEach(toast);
+}
+function revealRace(id) {
+  if (!RACE_BY_ID.has(id)) return;
+  let el = document.getElementById(`race-${id}`);
+  if (!el) {
+    state.query = ""; $("q").value = ""; state.filter = "all";
+    if (state.calls[id]) state.hideCalled = false;
+    savePrefs(); render();
+    el = document.getElementById(`race-${id}`);
+  }
+  if (!el) return;
+  el.scrollIntoView({ block: "center" });
+  el.classList.add("flash");
+  setTimeout(() => el.classList.remove("flash"), 1800);
+}
+
+const SYNC_TEXT = {
+  connecting: "Connecting…",
+  live: "Live: updates arrive on their own",
+  slow: "Can't reach the desk's data yet; showing what has loaded",
+  local: "Calls are saved in this browser only",
+  readonly: "View only: you can see calls but not change them",
+  error: "Lost the connection; press Reload",
+};
+function renderChrome() {
+  for (const b of document.querySelectorAll("[data-filter]")) b.setAttribute("aria-pressed", String(b.dataset.filter === state.filter));
+  $("hide-called").checked = state.hideCalled;
+  const sync = $("sync");
+  sync.dataset.mode = state.mode;
+  sync.textContent = (SYNC_TEXT[state.mode] || "") +
+    (state.lastSync && (state.mode === "live" || state.mode === "readonly") ? ` · synced ${fmtLocal.format(new Date(state.lastSync))}` : "");
+}
+
+function render() {
+  const a = document.activeElement;
+  const focusId = a?.dataset?.id, focusAct = a?.dataset?.act;
+  renderChrome();
+  renderBoard();
+  renderFeed();
+  renderTimeline();
+  if (focusId) {
+    const sel = `[data-id="${CSS.escape(focusId)}"]`;
+    const el = document.querySelector(`${sel}[data-act="${CSS.escape(focusAct)}"]`) || document.querySelector(`${sel}[data-act]`);
+    el?.focus({ preventScroll: true });
+  }
+}
+
+let closedSeen = SLOTS.filter(s => Date.parse(s) <= Date.now()).length;
+function tick() {
+  const now = new Date();
+  const closedNow = SLOTS.filter(s => Date.parse(s) <= now.getTime());
+  if (closedNow.length > closedSeen) {
+    for (const s of closedNow.slice(closedSeen)) {
+      const rs = RACES.filter(r => r.close === s && inFilter(r));
+      if (rs.length) toast({ kind: "close", race: null, text: rs.map(shortName).join(", ") });
+    }
+    closedSeen = closedNow.length;
+    render();
+  }
+  $("clock").textContent = fmtLocal.format(now);
+  $("clock-sub").textContent = viewerIsET ? "Eastern time" : `${tzName || "Your time"} · ${fmtET.format(now)} ET`;
+  for (const s of document.querySelectorAll(".slot[data-close]")) {
+    const st = slotStatus(s.dataset.close, now.getTime());
+    const pill = s.querySelector(".pill");
+    if (pill && (pill.textContent !== st.text || pill.dataset.state !== st.state)) { pill.textContent = st.text; pill.dataset.state = st.state; }
+  }
+}
+
+/* ---------- messages ---------- */
+let msgTimer = 0;
+function showMsg(text) {
+  const m = $("msg");
+  m.textContent = text; m.hidden = false;
+  clearTimeout(msgTimer);
+  msgTimer = setTimeout(() => { m.hidden = true; }, 8000);
+}
+
+/* ---------- stores ---------- */
+/* Everything read from the database is untrusted: keep only known shapes, cap sizes, render as text. */
+const isoOrNull = v => typeof v === "string" && v.length < 40 && !Number.isNaN(Date.parse(v)) ? v : null;
+const numIn = (v, lo, hi) => typeof v === "number" && Number.isFinite(v) && v >= lo && v <= hi ? v : null;
+function sanitizeCall(v) {
+  if (!v || !["D", "R", "I"].includes(v.winner)) return null;
+  return { winner: v.winner, at: isoOrNull(v.at) };
+}
+function sanitizeResults(body) {
+  const races = {};
+  const src = body && typeof body.races === "object" && body.races ? body.races : {};
+  for (const [id, v] of Object.entries(src)) {
+    if (!RACE_BY_ID.has(id) || !v || !Array.isArray(v.cands)) continue;
+    const cands = v.cands.slice(0, 6).map(c => ({
+      name: typeof c?.name === "string" ? c.name.slice(0, 80) : "",
+      party: ["D", "R", "I"].includes(c?.party) ? c.party : "O",
+      votes: numIn(c?.votes, 0, 2e8),
+      pct: numIn(c?.pct, 0, 100),
+      winner: c?.winner === true,
+    })).filter(c => c.name && c.votes != null).sort((a, b) => b.votes - a.votes);
+    if (!cands.length) continue;
+    races[id] = { cands, reporting: numIn(v.reporting, 0, 100), total: numIn(v.total, 0, 4e8), expected: numIn(v.expected, 1, 4e8), updated: isoOrNull(v.updated) };
+  }
+  const status = ["ok", "partial", "down", "waiting"].includes(body?.status) ? body.status : "waiting";
+  return { races, meta: { status, checked: isoOrNull(body?.checked), since: isoOrNull(body?.since), updated: isoOrNull(body?.updated),
+    statesOk: numIn(body?.statesOk, 0, 60), statesTotal: numIn(body?.statesTotal, 1, 60) } };
+}
+const FEED_KINDS = new Set(["first", "lead", "winner", "count", "info"]);
+function sanitizeFeed(id, v) {
+  const at = isoOrNull(v?.at);
+  if (!at || typeof v.text !== "string" || !v.text.trim()) return null;
+  return { id, at, race: RACE_BY_ID.has(v.race) ? v.race : null, kind: FEED_KINDS.has(v.kind) ? v.kind : "info", text: v.text.slice(0, 220) };
+}
+
+function useLocalStore() {
+  const KEY = "watch-desk-calls";
+  const load = () => {
+    const next = {};
+    try {
+      const saved = JSON.parse(localStorage.getItem(KEY) || "{}");
+      for (const [id, v] of Object.entries(saved)) { const c = sanitizeCall(v); if (c && RACE_BY_ID.has(id)) next[id] = c; }
+    } catch { /* storage unavailable: start empty */ }
+    state.calls = next;
+  };
+  load();
+  state.mode = "local";
+  store = {
+    async reload() { load(); render(); },
+    async write(id, winner) {
+      const next = { ...state.calls };
+      if (winner) next[id] = { winner, at: new Date().toISOString() }; else delete next[id];
+      state.calls = next;
+      try { localStorage.setItem(KEY, JSON.stringify(next)); } catch { showMsg("This browser isn't keeping data, so calls will be lost when you close the page."); }
+    },
+  };
+  render();
+}
+
+function useDbStore(db) {
+  const col = db.collection("calls");
+  const resultsRef = db.doc("results/all");
+  const feedQuery = db.collection("feed").orderBy("at", "desc").limit(80);
+  const loadTimer = setTimeout(() => { if (state.mode === "connecting") { state.mode = "slow"; renderChrome(); } }, 10000);
+  const dead = new Set();
+  const seenFeed = new Set();
+  let feedPrimed = false;
+
+  const applyCalls = snap => {
+    const next = {};
+    for (const d of snap.docs) { const c = sanitizeCall(d.data()); if (c && RACE_BY_ID.has(d.id)) next[d.id] = c; }
+    state.calls = next;
+  };
+  const applyResults = snap => {
+    if (!snap.exists) { state.results = {}; state.resultsMeta = null; return; }
+    const s = sanitizeResults(snap.data());
+    state.results = s.races; state.resultsMeta = s.meta;
+  };
+  const applyFeed = snap => {
+    const items = snap.docs.map(d => sanitizeFeed(d.id, d.data())).filter(Boolean);
+    const fresh = items.filter(it => !seenFeed.has(it.id));
+    fresh.forEach(it => seenFeed.add(it.id));
+    if (feedPrimed) announce(fresh);
+    if (!snap.metadata.fromCache) feedPrimed = true;
+    state.feed = items;
+  };
+  const onError = err => {
+    clearTimeout(loadTimer);
+    if (err && err.code === "revoked") { state.mode = "readonly"; state.canWrite = false; }
+    else if (state.mode !== "readonly") state.mode = "error";
+    render();
+  };
+  const SUBS = {
+    calls: () => col.onSnapshot(snap => {
+      applyCalls(snap);
+      if (!snap.metadata.fromCache) { clearTimeout(loadTimer); if (state.mode !== "readonly") state.mode = "live"; state.lastSync = Date.now(); }
+      render();
+    }, err => { dead.add("calls"); onError(err); }),
+    results: () => resultsRef.onSnapshot(snap => { applyResults(snap); render(); }, err => { dead.add("results"); onError(err); }),
+    feed: () => feedQuery.onSnapshot(snap => { applyFeed(snap); render(); }, err => { dead.add("feed"); onError(err); }),
+  };
+  for (const start of Object.values(SUBS)) start();
+
+  const attempt = (id, winner) => winner
+    ? col.doc(id).set({ winner, at: new Date().toISOString() })
+    : col.doc(id).delete();
+  store = {
+    async reload() {
+      for (const name of [...dead]) { dead.delete(name); SUBS[name](); }
+      const [c, r, f] = await Promise.all([col.get(), resultsRef.get(), feedQuery.get()]);
+      applyCalls(c); applyResults(r); applyFeed(f);
+      if (state.mode !== "readonly") state.mode = "live";
+      state.lastSync = Date.now();
+      render();
+    },
+    async write(id, winner) {
+      try { await attempt(id, winner); }
+      catch (e) {
+        if (e && e.code === "unavailable") {
+          await new Promise(res => setTimeout(res, 400 + Math.random() * 800));
+          await attempt(id, winner);
+        } else throw e;
+      }
+    },
+  };
+}
+
+async function setCall(id, winner) {
+  if (!store || state.pending.has(id) || !RACE_BY_ID.has(id)) return;
+  state.pending.add(id);
+  render();
+  try {
+    await store.write(id, winner);
+  } catch (e) {
+    const r = RACE_BY_ID.get(id);
+    const code = e && e.code;
+    if (code === "invalid_argument" || code === "revoked" || code === "not_granted") {
+      state.canWrite = false; state.mode = "readonly";
+      showMsg("You can view this desk but not change its calls.");
+    } else if (code === "quota_exceeded") {
+      showMsg("The desk's storage is full, so this call wasn't saved.");
+    } else {
+      showMsg(`Couldn't save the call for ${r ? r.label : id}. Check your connection and try again.`);
+    }
+  } finally {
+    state.pending.delete(id);
+    render();
+  }
+}
+
+/* ---------- events ---------- */
+$("timeline").addEventListener("click", e => {
+  const b = e.target.closest("button[data-act]");
+  if (!b || b.disabled) return;
+  setCall(b.dataset.id, b.dataset.act === "undo" ? null : b.dataset.act);
+});
+for (const b of document.querySelectorAll("[data-filter]")) {
+  b.addEventListener("click", () => { state.filter = b.dataset.filter; savePrefs(); render(); });
+}
+$("hide-called").addEventListener("change", e => { state.hideCalled = e.target.checked; savePrefs(); render(); });
+$("q").addEventListener("input", e => { state.query = e.target.value; renderTimeline(); });
+$("feed-more").addEventListener("click", () => { state.feedOpen = !state.feedOpen; renderFeed(); });
+$("reload").addEventListener("click", async () => {
+  const b = $("reload");
+  if (b.disabled || !store?.reload) return;
+  b.disabled = true; b.textContent = "Reloading…";
+  try { await store.reload(); }
+  catch { showMsg("Couldn't reload the desk's data. Check your connection and try again."); }
+  finally { b.disabled = false; b.textContent = "↻ Reload"; }
+});
+document.addEventListener("click", e => {
+  const rv = e.target.closest("[data-reveal]");
+  if (rv) { revealRace(rv.dataset.reveal); return; }
+  const x = e.target.closest(".toast .x");
+  if (x) x.closest(".toast").remove();
+});
+$("jump").addEventListener("click", () => {
+  const now = Date.now();
+  const slots = [...document.querySelectorAll(".slot[data-close]")];
+  const closed = slots.filter(s => Date.parse(s.dataset.close) <= now);
+  const target = closed[closed.length - 1] || slots[0];
+  target?.scrollIntoView({ block: "start" });
+});
+
+function loadPrefs() {
+  try {
+    const p = JSON.parse(localStorage.getItem("watch-desk-prefs") || "{}");
+    if (["all", "sen", "gov", "house"].includes(p.filter)) state.filter = p.filter;
+    state.hideCalled = p.hideCalled === true;
+  } catch { /* defaults */ }
+}
+function savePrefs() {
+  try { localStorage.setItem("watch-desk-prefs", JSON.stringify({ filter: state.filter, hideCalled: state.hideCalled })); } catch { /* ignore */ }
+}
+
+/* ---------- boot ---------- */
+loadPrefs();
+render();
+tick();
+setInterval(tick, 20000);
+
+(async () => {
+  let db = null;
+  try { db = window.claude && typeof window.claude.use === "function" ? await window.claude.use("db") : null; } catch { db = null; }
+  if (!db) { useLocalStore(); $("reload").disabled = false; return; }
+  try {
+    const user = await window.claude.use("user");
+    if (user && (await user.can("data.write")) === false) { state.canWrite = false; state.mode = "readonly"; }
+  } catch { /* unknown: keep controls; a refused write decides */ }
+  useDbStore(db);
+  $("reload").disabled = false;
+  render();
+})();
+</script>

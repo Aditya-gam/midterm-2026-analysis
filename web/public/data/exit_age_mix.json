@@ -1,0 +1,74 @@
+[
+{
+"answer": "18-29",
+"order": 0,
+"share": 12.0,
+"dem": 63.0,
+"rep": 35.0,
+"margin": 28.0,
+"year": 2022
+},
+{
+"answer": "30-44",
+"order": 1,
+"share": 21.0,
+"dem": 51.0,
+"rep": 47.0,
+"margin": 4.0,
+"year": 2022
+},
+{
+"answer": "45-64",
+"order": 2,
+"share": 39.0,
+"dem": 44.0,
+"rep": 54.0,
+"margin": -10.0,
+"year": 2022
+},
+{
+"answer": "65 or over",
+"order": 3,
+"share": 28.0,
+"dem": 43.0,
+"rep": 55.0,
+"margin": -12.0,
+"year": 2022
+},
+{
+"answer": "18-29",
+"order": 0,
+"share": 11.0,
+"dem": 73.0,
+"rep": 25.0,
+"margin": 48.0,
+"year": 2026
+},
+{
+"answer": "30-44",
+"order": 1,
+"share": 20.0,
+"dem": 62.0,
+"rep": 36.0,
+"margin": 26.0,
+"year": 2026
+},
+{
+"answer": "45-64",
+"order": 2,
+"share": 34.0,
+"dem": 52.0,
+"rep": 47.0,
+"margin": 5.0,
+"year": 2026
+},
+{
+"answer": "65 or over",
+"order": 3,
+"share": 36.0,
+"dem": 50.0,
+"rep": 50.0,
+"margin": 0.0,
+"year": 2026
+}
+]

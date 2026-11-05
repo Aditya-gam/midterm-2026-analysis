@@ -1,0 +1,34 @@
+[
+{
+"answer": "Kamala Harris (Dem)",
+"order": 0,
+"share": 49.0,
+"dem": 97.0,
+"rep": 2.0,
+"margin": 95.0
+},
+{
+"answer": "Donald Trump (Rep)",
+"order": 1,
+"share": 44.0,
+"dem": 7.0,
+"rep": 91.0,
+"margin": -84.0
+},
+{
+"answer": "Other",
+"order": 2,
+"share": 2.0,
+"dem": 57.0,
+"rep": 30.0,
+"margin": 27.0
+},
+{
+"answer": "Did not vote",
+"order": 3,
+"share": 4.0,
+"dem": 70.0,
+"rep": 25.0,
+"margin": 45.0
+}
+]

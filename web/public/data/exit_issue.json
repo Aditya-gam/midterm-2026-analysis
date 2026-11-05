@@ -1,0 +1,50 @@
+[
+{
+"answer": "Crime",
+"order": 0,
+"share": 3.0,
+"dem": 19.0,
+"rep": 79.0,
+"margin": -60.0
+},
+{
+"answer": "The economy",
+"order": 1,
+"share": 39.0,
+"dem": 52.0,
+"rep": 46.0,
+"margin": 6.0
+},
+{
+"answer": "Foreign policy",
+"order": 2,
+"share": 4.0,
+"dem": 47.0,
+"rep": 50.0,
+"margin": -3.0
+},
+{
+"answer": "Healthcare",
+"order": 3,
+"share": 8.0,
+"dem": 67.0,
+"rep": 31.0,
+"margin": 36.0
+},
+{
+"answer": "Immigration",
+"order": 4,
+"share": 14.0,
+"dem": 10.0,
+"rep": 89.0,
+"margin": -79.0
+},
+{
+"answer": "The state of democracy",
+"order": 5,
+"share": 33.0,
+"dem": 79.0,
+"rep": 20.0,
+"margin": 59.0
+}
+]

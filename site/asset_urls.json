@@ -1,0 +1,82 @@
+{
+ "geo_counties": {
+  "url": "/_blob/18f073de6ca4dc4b69e959bf2fb9afd7",
+  "name": "geo_counties.json"
+ },
+ "geo_states": {
+  "url": "/_blob/8d1ef30275bc4715a35352320761130f",
+  "name": "geo_states.json"
+ },
+ "exit_shift": {
+  "url": "/_blob/bf6f7901668beb2a1fd28871226b965b",
+  "name": "exit_shift.json"
+ },
+ "exit_flow": {
+  "url": "/_blob/7c097079631cbe3d8bb89fdebd8a61e0",
+  "name": "exit_flow.json"
+ },
+ "exit_issue": {
+  "url": "/_blob/e8e186d7940750a2500a13c25a00b4e7",
+  "name": "exit_issue.json"
+ },
+ "exit_approval": {
+  "url": "/_blob/053615badfc7da1a43bb45f6f53369c1",
+  "name": "exit_approval.json"
+ },
+ "exit_age_mix": {
+  "url": "/_blob/6955892381b6a538d29dfe28376e0f51",
+  "name": "exit_age_mix.json"
+ },
+ "headline": {
+  "url": "/_blob/ab12c8ff2d3815db758f96d4a85655f8",
+  "name": "headline.json"
+ },
+ "races_federal": {
+  "url": "/_blob/d5973006a51d3ba4896781e9a38b77e6",
+  "name": "races_federal.json"
+ },
+ "statewide_vs_pres": {
+  "url": "/_blob/2a1eb0dc9926a5be9cb6f84ba8ba190a",
+  "name": "statewide_vs_pres.json"
+ },
+ "county_swing": {
+  "url": "/_blob/dcf2d78382105b55770af7317974eae4",
+  "name": "county_swing.json"
+ },
+ "swing_by_type": {
+  "url": "/_blob/1ed7f917e663cfcf7fdb2d3d87f5ff28",
+  "name": "swing_by_type.json"
+ },
+ "turnout_state": {
+  "url": "/_blob/b9e9c2f2a33cad9a80b575768bd22694",
+  "name": "turnout_state.json"
+ },
+ "measures_statewide": {
+  "url": "/_blob/02da7354fa8a3637cc9ffaf72501f5a2",
+  "name": "measures_statewide.json"
+ },
+ "measures_local": {
+  "url": "/_blob/5dab59432c3335954c92a4cf4070c33a",
+  "name": "measures_local.json"
+ },
+ "measure_featured": {
+  "url": "/_blob/03bdcf027fa991207aa2cc1086334432",
+  "name": "measure_featured.json"
+ },
+ "measure_counties": {
+  "url": "/_blob/e40c4eaa42364ce767c461f91a70dada",
+  "name": "measure_counties.json"
+ },
+ "office_contest": {
+  "url": "/_blob/bb21eba1234c4aca7b3ae408e36e648f",
+  "name": "office_contest.json"
+ },
+ "office_margins": {
+  "url": "/_blob/7964ac1e7747e6324dfb67093ba6bae9",
+  "name": "office_margins.json"
+ },
+ "state_legislatures": {
+  "url": "/_blob/d62a1d26ee6e56d96b0a9ead4d545b20",
+  "name": "state_legislatures.json"
+ }
+}

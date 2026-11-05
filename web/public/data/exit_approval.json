@@ -1,0 +1,34 @@
+[
+{
+"answer": "Strongly approve",
+"order": 0,
+"share": 20.0,
+"dem": 2.0,
+"rep": 98.0,
+"margin": -96.0
+},
+{
+"answer": "Somewhat approve",
+"order": 1,
+"share": 17.0,
+"dem": 5.0,
+"rep": 93.0,
+"margin": -88.0
+},
+{
+"answer": "Somewhat disapprove",
+"order": 2,
+"share": 8.0,
+"dem": 33.0,
+"rep": 63.0,
+"margin": -30.0
+},
+{
+"answer": "Strongly disapprove",
+"order": 3,
+"share": 54.0,
+"dem": 94.0,
+"rep": 4.0,
+"margin": 90.0
+}
+]

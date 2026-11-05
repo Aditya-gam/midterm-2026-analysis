@@ -1,0 +1,37 @@
+# Render blueprint for the Ask API (free plan: sleeps after 15 idle minutes, about a minute to wake).
+# The database is not in the repo: the service downloads it from the refresh workflow's release asset at
+# startup and checks it for a newer copy every REFRESH_MINUTES.
+services:
+  - type: web
+    name: midterms-ask-api
+    runtime: python
+    plan: free
+    region: oregon
+    rootDir: api
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT --proxy-headers --forwarded-allow-ips "*"
+    healthCheckPath: /health
+    autoDeployTrigger: commit
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.12
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      # https://github.com/<owner>/<repo>/releases/download/data-latest/midterms.duckdb
+      - key: DATA_URL
+        sync: false
+      # the website's origin, e.g. https://midterms-26.vercel.app
+      - key: ALLOWED_ORIGINS
+        sync: false
+      - key: DB_PATH
+        value: /tmp/midterms.duckdb
+      - key: DAILY_BUDGET_USD
+        value: "5"
+      - key: RATE_PER_MINUTE
+        value: "4"
+      - key: RATE_PER_DAY
+        value: "40"
+      - key: MAX_CONCURRENT
+        value: "3"
+      - key: REFRESH_MINUTES
+        value: "30"

@@ -1,0 +1,320 @@
+<!doctype html><html lang=en><head><meta charset=utf-8><meta name=viewport content='width=device-width,initial-scale=1'><title>Midterm Atlas preview</title><style>
+:root{color-scheme:dark;--color-fg:#ecebe8;--color-fg-muted:#9a9893;--color-bg:#121211;--color-panel:#1b1b1a;
+--color-border-line:#2c2c2a;--color-bad:#e5484d;--color-ok:#0ca30c;--color-warn:#fab219;
+--cds-chart-categorical-1:#3987e5;--cds-chart-categorical-2:#d95926;--cds-chart-categorical-3:#199e70;
+--cds-chart-categorical-7:#9085e9;--cds-chart-categorical-8:#e66767;
+--cds-chart-diverging-1:#6da7ec;--cds-chart-diverging-2:#2a78d6;--cds-chart-diverging-3:#184f95;--cds-chart-diverging-4:#383835;
+--cds-chart-diverging-5:#8f2d2c;--cds-chart-diverging-6:#d24443;--cds-chart-diverging-7:#ef8a89;
+--cds-chart-muted:#6b6a66;--cds-chart-grid:rgba(255,255,255,.07);--cds-chart-axis:#383835;--cds-chart-reference:#7a7974;
+--cds-surface-popover:#232322;--cds-border:rgba(255,255,255,.1);--cds-shadow-popover:0 4px 16px rgba(0,0,0,.4);
+--cds-text-secondary:#b5b3ac;--cds-radius:8px;--cds-pad-xs:4px;--cds-pad-sm:8px;--cds-pad-lg:20px;
+--cds-gap-xs:4px;--cds-gap-sm:8px;--cds-gap-md:16px;--cds-gap-lg:24px;--cds-font-size-caption:12px;--cds-font-size-body:14px;
+--cds-font-size-heading:15px;--cds-font-size-title:28px;--cds-font-weight-medium:500;--cds-dur-slow:.45s;
+--cds-ease-out:cubic-bezier(.165,.84,.44,1);--font-anthropic-sans:system-ui,-apple-system,sans-serif;--font-anthropic-serif:Georgia,serif}
+html,body{margin:0;background:var(--color-bg);color:var(--color-fg);font:14px system-ui}
+#dash-root{padding:24px max(16px,3vw)}
+</style><script src='https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js'></script><script src='data.js'></script><script>
+window.__errors = [];
+(() => {
+  const regs = {};
+  const visible = (el) => !el.closest('[hidden]');
+  const run = (name) => {
+    const fn = regs[name];
+    if (!fn) return;
+    document.querySelectorAll(`[data-draw="${name}"]`).forEach((el) => {
+      if (!visible(el)) return;
+      try { fn(el); } catch (e) { console.error('draw failed', name, e); window.__errors.push(`${name}: ${e.message}`); }
+    });
+  };
+  const all = () => Object.keys(regs).forEach(run);
+  window.dash = {
+    data: (id) => (window.__DATA[id] ? { status: 'ok', data: window.__DATA[id], columns: Object.keys(window.__DATA[id][0] || {}) }
+                                     : { status: 'missing', data: [] }),
+    draw: (name, fn) => { if (typeof fn === 'function') regs[name] = fn; run(name); },
+    onData: (fn) => fn(), setLink: () => setTimeout(all), params: () => ({}), setParams() {}, resetParams() {},
+    refresh() {}, calc() {}, loader() {}, colors: [],
+  };
+  let t;
+  window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(all, 150); });
+})();
+</script></head><body><div id='dash-root'><meta name="dash-one-writer">
+<style>
+  /* Layout: a header with the outcome in one sentence, a row of tabs, then one page of cards per question. */
+  .mx { --mx-dem: var(--cds-chart-categorical-1); --mx-rep: var(--cds-chart-categorical-8); --mx-oth: var(--cds-chart-categorical-7);
+        --mx-neutral: var(--cds-chart-categorical-3); --mx-alt: var(--cds-chart-categorical-2);
+        font-family: var(--font-anthropic-sans); color: var(--color-fg); display: grid; gap: var(--cds-gap-lg); }
+  .mx [hidden] { display: none !important; }  /* class rules below set display; hidden must still win */
+  .mx-head { display: grid; gap: var(--cds-gap-sm); }
+  .mx-head h1 { font-family: var(--font-anthropic-serif); font-weight: 400; font-size: var(--cds-font-size-title); margin: 0; text-wrap: balance; }
+  .mx-lede { margin: 0; font-size: var(--cds-font-size-body); max-width: 68ch; line-height: 1.5; }
+  .mx-lede b, .mx-tile b, .mx-note b { font-weight: var(--cds-font-weight-medium); font-variant-numeric: tabular-nums; }
+  .mx-src { margin: 0; color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); max-width: 90ch; line-height: 1.5; }
+  .mx-tabs { display: flex; flex-wrap: wrap; gap: var(--cds-gap-xs); border-bottom: 1px solid var(--color-border-line); }
+  .mx-tab { font: inherit; font-size: var(--cds-font-size-body); background: none; border: 0; border-bottom: 2px solid transparent;
+            color: var(--color-fg-muted); padding: var(--cds-pad-xs) var(--cds-pad-sm); cursor: pointer; margin-bottom: -1px; }
+  .mx-tab[aria-selected="true"] { color: var(--color-fg); border-bottom-color: var(--color-fg); }
+  .mx-tab:focus-visible { outline: 2px solid var(--mx-neutral); outline-offset: 2px; }
+  .mx-page { display: grid; gap: var(--cds-gap-md); }
+  .mx-intro { margin: 0; max-width: 72ch; line-height: 1.5; color: var(--color-fg); }
+  .mx-grid { display: grid; gap: var(--cds-gap-md); grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr)); }
+  .mx-tiles { display: grid; gap: var(--cds-gap-md); grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr)); }
+  .mx-card { background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius);
+             padding: var(--cds-pad-lg); display: grid; gap: var(--cds-gap-sm); align-content: start; min-width: 0; }
+  .mx-card h2 { margin: 0; font-size: var(--cds-font-size-heading); font-weight: var(--cds-font-weight-medium); text-wrap: balance; }
+  .mx-note { margin: 0; color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); line-height: 1.45; max-width: 80ch; }
+  .mx-tile { display: grid; gap: var(--cds-gap-xs); align-content: start; }
+  .mx-tile .mx-label { color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); }
+  .mx-big { font-family: var(--font-anthropic-serif); font-weight: 400; font-size: var(--cds-font-size-title); line-height: 1.1; }
+  .mx-big .mx-d { color: var(--mx-dem); } .mx-big .mx-r { color: var(--mx-rep); }
+  .mx-chart { position: relative; min-height: 120px; min-width: 0; }
+  .mx-chart.mx-tall { min-height: 320px; } .mx-chart.mx-map { min-height: 260px; }
+  .mx-chart svg { display: block; overflow: visible; }
+  .mx-chart text { font-size: var(--cds-font-size-caption); fill: var(--color-fg-muted); font-family: var(--font-anthropic-sans); }
+  .mx-chart text.mx-strong { fill: var(--color-fg); }
+  .mx-chart .mx-grid-line { stroke: var(--cds-chart-grid); stroke-width: 1; }
+  .mx-chart .mx-axis-line { stroke: var(--cds-chart-axis); stroke-width: 1; }
+  .mx-chart .mx-ref { stroke: var(--cds-chart-reference); stroke-width: 1; }
+  .mx-legend { display: flex; flex-wrap: wrap; gap: var(--cds-gap-xs) var(--cds-gap-md); font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); align-items: center; }
+  .mx-key { display: inline-flex; align-items: center; gap: 6px; }
+  .mx-sw { display: inline-block; width: 10px; height: 10px; border-radius: 50%; flex: none; }
+  .mx-sw.mx-sq { border-radius: 2px; width: 14px; }
+  .mx-sw.mx-hollow { background: transparent; border: 2px solid currentColor; width: 6px; height: 6px; }
+  .mx-tip { position: absolute; z-index: 5; pointer-events: none; background: var(--cds-surface-popover); border: 1px solid var(--cds-border);
+            border-radius: var(--cds-radius); box-shadow: var(--cds-shadow-popover); padding: var(--cds-pad-xs) var(--cds-pad-sm);
+            font-size: var(--cds-font-size-caption); max-width: 260px; display: grid; gap: 2px; }
+  .mx-tip .mx-tip-head { color: var(--cds-text-secondary); }
+  .mx-tip div { display: flex; align-items: center; gap: 6px; }
+  .mx-fail { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: inherit; color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); }
+  .mx-fail::before { content: ""; width: .375rem; height: .375rem; border-radius: 50%; background: var(--color-bad); }
+  .mx-search { font: inherit; font-size: var(--cds-font-size-body); padding: var(--cds-pad-xs) var(--cds-pad-sm); border: 1px solid var(--color-border-line);
+               border-radius: var(--cds-radius); background: var(--color-bg); color: var(--color-fg); max-width: 22rem; width: 100%; }
+  .mx-tablebox { max-height: 420px; overflow: auto; }
+  .mx-table { border-collapse: collapse; width: 100%; font-size: var(--cds-font-size-caption); font-variant-numeric: tabular-nums; }
+  .mx-table th { position: sticky; top: 0; background: var(--color-panel); text-align: left; font-weight: var(--cds-font-weight-medium);
+                 padding: var(--cds-pad-xs) var(--cds-pad-sm); border-bottom: 1px solid var(--color-border-line); }
+  .mx-table td { padding: var(--cds-pad-xs) var(--cds-pad-sm); border-bottom: 1px solid var(--color-border-line); vertical-align: top; }
+  .mx-table td.mx-num, .mx-table th.mx-num { text-align: right; }
+  .mx-pill { display: inline-block; padding: 0 8px; border-radius: 999px; font-size: var(--cds-font-size-caption); border: 1px solid var(--color-border-line); }
+  .mx-pill.mx-yes { background: color-mix(in oklab, var(--mx-neutral) 22%, transparent); }
+  .mx-states { display: grid; gap: var(--cds-gap-sm) var(--cds-gap-md); grid-template-columns: repeat(auto-fill, minmax(min(100%, 14rem), 1fr)); }
+  [data-dash-source-state=empty] { color: transparent; }
+  [data-dash-source-state=refreshing] { opacity: .5; transition: opacity var(--cds-dur-slow); }
+  @media (prefers-reduced-motion: no-preference) {
+    .mx-page:not([hidden]) .mx-card { animation: mx-in var(--cds-dur-slow) var(--cds-ease-out) both; }
+    @keyframes mx-in { from { opacity: .4; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+  }
+</style>
+
+<div class="mx">
+  <header class="mx-head" id="top">
+    <h1>2026 Midterm Atlas</h1>
+    <p class="mx-lede">Democrats have won <b data-draw="field" data-source="headline" data-field="dem_won" data-where="office=house">—</b> House seats so far and Republicans <b data-draw="field" data-source="headline" data-field="rep_won" data-where="office=house">—</b>, with <b data-draw="field" data-source="headline" data-field="uncalled" data-where="office=house">—</b> more not yet called. Added across every House race, the vote stands at <b data-draw="field" data-source="headline" data-field="vote_margin" data-where="office=house" data-fmt="margin">—</b>.</p>
+    <p class="mx-src">Unofficial counts as of <span data-draw="field" data-source="headline" data-field="as_of" data-where="office=house" data-fmt="time">—</span>; numbers will move as states finish counting. Results from civicAPI. 2024 baseline: county presidential results compiled by Tony McGovern. Eligible voters: UF Election Lab. County traits: USDA Economic Research Service. Exit polls: NBC News. Ballot measure titles: Wikipedia. Margins are the Democratic share minus the Republican share of all votes cast, in percentage points.</p>
+  </header>
+
+  <nav class="mx-tabs" role="tablist" aria-label="Sections">
+    <button class="mx-tab" role="tab" data-tab="national" aria-selected="true">National</button>
+    <button class="mx-tab" role="tab" data-tab="counties" aria-selected="false">County shifts</button>
+    <button class="mx-tab" role="tab" data-tab="turnout" aria-selected="false">Turnout</button>
+    <button class="mx-tab" role="tab" data-tab="measures" aria-selected="false">Ballot measures</button>
+    <button class="mx-tab" role="tab" data-tab="local" aria-selected="false">State &amp; local</button>
+    <button class="mx-tab" role="tab" data-tab="exit" aria-selected="false">Exit polls</button>
+  </nav>
+
+  <!-- ===== National ===== -->
+  <section class="mx-page" id="national">
+    <div class="mx-tiles">
+      <div class="mx-card mx-tile" id="tile-house">
+        <span class="mx-label">House seats won or leading</span>
+        <span class="mx-big"><span class="mx-d" data-draw="field" data-source="headline" data-field="dem_total" data-where="office=house">—</span> D · <span class="mx-r" data-draw="field" data-source="headline" data-field="rep_total" data-where="office=house">—</span> R</span>
+        <p class="mx-note">Of <b data-draw="field" data-source="headline" data-field="with_results" data-where="office=house">—</b> races with results; <b data-draw="field" data-source="headline" data-field="uncalled" data-where="office=house">—</b> still uncalled. 218 is a majority.</p>
+      </div>
+      <div class="mx-card mx-tile" id="tile-senate">
+        <span class="mx-label">Senate races won or leading</span>
+        <span class="mx-big"><span class="mx-d" data-draw="field" data-source="headline" data-field="dem_total" data-where="office=sen">—</span> D · <span class="mx-r" data-draw="field" data-source="headline" data-field="rep_total" data-where="office=sen">—</span> R</span>
+        <p class="mx-note">Of <b data-draw="field" data-source="headline" data-field="races" data-where="office=sen">—</b> seats on the ballot this year; seats not up in 2026 are not counted here.</p>
+      </div>
+      <div class="mx-card mx-tile" id="tile-gov">
+        <span class="mx-label">Governor races won or leading</span>
+        <span class="mx-big"><span class="mx-d" data-draw="field" data-source="headline" data-field="dem_total" data-where="office=gov">—</span> D · <span class="mx-r" data-draw="field" data-source="headline" data-field="rep_total" data-where="office=gov">—</span> R</span>
+        <p class="mx-note">Of <b data-draw="field" data-source="headline" data-field="races" data-where="office=gov">—</b> governorships on the ballot.</p>
+      </div>
+      <div class="mx-card mx-tile" id="tile-vote">
+        <span class="mx-label">Combined House vote</span>
+        <span class="mx-big" data-draw="field" data-source="headline" data-field="vote_margin" data-where="office=house" data-fmt="margin">—</span>
+        <p class="mx-note"><b data-draw="field" data-source="headline" data-field="total_votes" data-where="office=house" data-fmt="compact">—</b> votes counted so far. Races with one major party on the ballot inflate that party's total. <span data-draw="field" data-fmt="text" data-source="headline" data-field="vote_note" data-where="office=house">—</span></p>
+      </div>
+    </div>
+
+    <div class="mx-card" id="card-house-strip">
+      <h2>Every House race, placed by its margin</h2>
+      <p class="mx-note">Each dot is one district. Left of center Republicans lead, right of center Democrats lead. Hollow dots are not yet called. Races with no opponent sit at the edges.</p>
+      <div class="mx-legend"><span class="mx-key"><span class="mx-sw" style="background:var(--mx-dem)"></span>Democrat</span><span class="mx-key"><span class="mx-sw" style="background:var(--mx-rep)"></span>Republican</span><span class="mx-key"><span class="mx-sw" style="background:var(--mx-oth)"></span>Other</span><span class="mx-key"><span class="mx-sw mx-hollow"></span>Not yet called</span></div>
+      <div class="mx-chart" data-draw="house-strip" data-source="races_federal"></div>
+    </div>
+
+    <div class="mx-card" id="card-statewide">
+      <h2>Senate and governor results against the 2024 presidential vote</h2>
+      <p class="mx-note">The gray dot is how the state voted for president in 2024; the colored dot is this year's race, in the leader's color. The line between them is how far the 2026 candidate ran ahead of or behind the top of the 2024 ticket.</p>
+      <div class="mx-legend"><span class="mx-key"><span class="mx-sw" style="background:var(--cds-chart-muted)"></span>2024 president</span><span class="mx-key"><span class="mx-sw" style="background:var(--mx-dem)"></span><span class="mx-sw" style="background:var(--mx-rep)"></span>2026 race</span><span class="mx-key"><span class="mx-sw mx-hollow"></span>Not yet called</span></div>
+      <div class="mx-chart mx-tall" data-draw="statewide" data-source="statewide_vs_pres"></div>
+    </div>
+  </section>
+
+  <!-- ===== County shifts ===== -->
+  <section class="mx-page" id="counties" hidden>
+    <p class="mx-intro">How far each county moved between the 2024 presidential race and this year's top statewide race (Senate where there is one with both parties, otherwise governor). States without either race, and Alaska, whose 2024 results are reported by legislative district, are left as blank outlines.</p>
+    <div class="mx-card" id="card-swing-map">
+      <h2>Shift since 2024, by county</h2>
+      <div class="mx-legend" data-draw="swing-legend"></div>
+      <div class="mx-chart mx-map" data-draw="swing-map" data-source="county_swing geo_counties geo_states"></div>
+    </div>
+    <div class="mx-grid">
+      <div class="mx-card" id="card-swing-scatter">
+        <h2>2024 president vs. 2026 margin</h2>
+        <p class="mx-note">Each dot is a county, sized by votes cast this year. Dots above the diagonal moved toward Democrats.</p>
+        <div class="mx-chart mx-tall" data-draw="swing-scatter" data-source="county_swing"></div>
+      </div>
+      <div class="mx-card" id="card-swing-types">
+        <h2>Which kinds of places moved most</h2>
+        <p class="mx-note">Dot: the median county's shift toward Democrats, in points. Bar: the middle half of counties. Education and income groups are fifths of counties.</p>
+        <div class="mx-chart mx-tall" data-draw="swing-types" data-source="swing_by_type"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Turnout ===== -->
+  <section class="mx-page" id="turnout" hidden>
+    <p class="mx-intro">Turnout here is the vote in each state's largest race so far, divided by its citizens eligible to vote. It runs slightly below total ballots cast, since some voters skip the top race, and it will rise as counting finishes, most of all in states that vote mostly by mail (California, Washington, Oregon, Utah), where "100% of precincts reporting" still leaves ballots uncounted. A state whose count in the source exceeds its eligible voters is left out.</p>
+    <div class="mx-card" id="card-turnout-tiles">
+      <h2>Turnout of eligible voters, by state</h2>
+      <div class="mx-legend" data-draw="turnout-legend"></div>
+      <div class="mx-chart" data-draw="turnout-tiles" data-source="turnout_state"></div>
+    </div>
+    <div class="mx-grid">
+      <div class="mx-card" id="card-turnout-change">
+        <h2>2022 midterm vs. 2026</h2>
+        <p class="mx-note">Hollow: 2022 turnout of eligible voters (total ballots, UF Election Lab). Filled: 2026 so far.</p>
+        <div class="mx-chart mx-tall" data-draw="turnout-change" data-source="turnout_state"></div>
+      </div>
+      <div class="mx-card" id="card-turnout-close">
+        <h2>Did close races bring out more voters?</h2>
+        <p class="mx-note">Each dot is a state with a Senate or governor race: its closest race's margin against its turnout.</p>
+        <div class="mx-chart mx-tall" data-draw="turnout-close" data-source="turnout_state"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Ballot measures ===== -->
+  <section class="mx-page" id="measures" hidden>
+    <p class="mx-intro">Statewide questions put to voters, grouped by topic. Most need a simple majority; Florida amendments need 60%, Colorado amendments 55%, New Hampshire constitutional questions two-thirds. Topics come from each measure's title; measures listed only by number in the sources are shown as "Not described in source".</p>
+    <div class="mx-card" id="card-measure-strip">
+      <h2>Every statewide measure, by topic and Yes share</h2>
+      <div class="mx-legend"><span class="mx-key"><span class="mx-sw" style="background:var(--mx-neutral)"></span>Passing so far</span><span class="mx-key"><span class="mx-sw mx-hollow"></span>Failing so far</span></div>
+      <div class="mx-chart mx-tall" data-draw="measure-strip" data-source="measures_statewide"></div>
+    </div>
+    <div class="mx-grid">
+      <div class="mx-card" id="card-measure-partisan">
+        <h2>Measures against how the state voted in 2024</h2>
+        <p class="mx-note">Measures far from the trend passed in states that voted the other way for president.</p>
+        <div class="mx-chart mx-tall" data-draw="measure-partisan" data-source="measures_statewide"></div>
+      </div>
+      <div class="mx-card" id="card-measure-featured">
+        <h2>A measure that crossed party lines: <span data-draw="field" data-fmt="text" data-source="measure_featured" data-field="name" data-row="0">—</span></h2>
+        <p class="mx-note" data-draw="field" data-fmt="text" data-source="measure_featured" data-field="summary" data-row="0">—</p>
+        <p class="mx-note">Picked as the passing measure, in the most one-sided state, whose county-by-county support follows the party that lost that state in 2024. Each dot is a county, sized by votes on the measure.</p>
+        <div class="mx-chart mx-tall" data-draw="measure-featured" data-source="measure_counties"></div>
+      </div>
+    </div>
+    <div class="mx-card" id="card-local-measures">
+      <h2>Local ballot questions: how often they pass</h2>
+      <p class="mx-note">City, county, school and district questions, grouped by words in their titles. Many titles name only a number, so the largest group is undescribed.</p>
+      <div class="mx-chart" data-draw="local-measures" data-source="measures_local"></div>
+    </div>
+    <div class="mx-card" id="card-measure-table">
+      <h2>All statewide measures</h2>
+      <input class="mx-search" id="measure-search" type="search" placeholder="Search by state, topic or title" aria-label="Search measures">
+      <div class="mx-tablebox">
+        <table class="mx-table" data-source="measures_statewide" data-row-key="id">
+          <thead><tr><th data-field="state">State</th><th data-field="name">Measure</th><th data-field="topic">Topic</th><th class="mx-num" data-field="yes_pct">Yes</th><th data-field="status">Status</th><th class="mx-num" data-field="reporting">Reporting</th></tr></thead>
+          <tbody data-draw="measure-table"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== State & local ===== -->
+  <section class="mx-page" id="local" hidden>
+    <p class="mx-intro">Below the federal races sit tens of thousands of state and local contests. Here: how many had a real choice, how close the contested ones were, and who won the state legislative seats on the ballot.</p>
+    <div class="mx-grid">
+      <div class="mx-card" id="card-uncontested">
+        <h2>Share of races with no contest</h2>
+        <p class="mx-note">A race is uncontested when no more candidates ran than there were seats.</p>
+        <div class="mx-chart" data-draw="uncontested" data-source="office_contest"></div>
+      </div>
+      <div class="mx-card" id="card-margins">
+        <h2>How close the contested races were</h2>
+        <p class="mx-note">Single-seat contested races at least half counted, by the winner's lead in points (5-point bins). The orange bar is the closest group, races decided by under 5 points. Each panel has its own scale.</p>
+        <div class="mx-chart mx-tall" data-draw="margins" data-source="office_margins office_contest"></div>
+      </div>
+    </div>
+    <div class="mx-card" id="card-legislatures">
+      <h2>State legislative seats on the ballot, won or leading</h2>
+      <p class="mx-note">Seats decided this year only, not each chamber's full membership. Counts include races not yet called.</p>
+      <div class="mx-legend"><span class="mx-key"><span class="mx-sw mx-sq" style="background:var(--mx-dem)"></span>Democrat</span><span class="mx-key"><span class="mx-sw mx-sq" style="background:var(--mx-rep)"></span>Republican</span><span class="mx-key"><span class="mx-sw mx-sq" style="background:var(--mx-oth)"></span>Other</span></div>
+      <div class="mx-states" data-draw="legislatures" data-source="state_legislatures"></div>
+    </div>
+  </section>
+
+  <!-- ===== Exit polls ===== -->
+  <section class="mx-page" id="exit" hidden>
+    <p class="mx-intro">NBC News exit polls. 2022 and 2026 ask about the House vote; 2024 asked about the presidential vote, so it is shown for context only. Poll methods change between years, so small differences are within the noise.</p>
+    <div class="mx-card" id="card-exit-shift">
+      <h2>How each group's vote moved</h2>
+      <p class="mx-note">Democratic margin among each group. Hollow: 2022 House. Small bar: 2024 president. Filled: 2026 House.</p>
+      <div class="mx-chart mx-tall" data-draw="exit-shift" data-source="exit_shift"></div>
+    </div>
+    <div class="mx-grid">
+      <div class="mx-card" id="card-exit-flow">
+        <h2>2026 House vote by 2024 presidential vote</h2>
+        <p class="mx-note">Column width is each group's share of 2026 voters. Narrow columns: other candidates and 2024 non-voters.</p>
+        <div class="mx-legend"><span class="mx-key"><span class="mx-sw mx-sq" style="background:var(--mx-dem)"></span>Voted Democratic for House</span><span class="mx-key"><span class="mx-sw mx-sq" style="background:var(--mx-rep)"></span>Voted Republican</span><span class="mx-key"><span class="mx-sw mx-sq" style="background:var(--cds-chart-muted)"></span>Other or no answer</span></div>
+        <div class="mx-chart mx-tall" data-draw="exit-flow" data-source="exit_flow"></div>
+      </div>
+      <div class="mx-card" id="card-exit-issue">
+        <h2>The issue that mattered most</h2>
+        <p class="mx-note">Left: share of voters naming each issue. Right: the House margin among them.</p>
+        <div class="mx-chart" data-draw="exit-issue" data-source="exit_issue"></div>
+      </div>
+    </div>
+    <div class="mx-grid">
+      <div class="mx-card" id="card-exit-approval">
+        <h2>Trump's job approval among 2026 voters</h2>
+        <div class="mx-chart" data-draw="exit-approval" data-source="exit_approval"></div>
+      </div>
+      <div class="mx-card" id="card-exit-age">
+        <h2>Who voted, by age: 2022 vs. 2026</h2>
+        <div class="mx-chart" data-draw="exit-age" data-source="exit_age_mix"></div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<script src="../site/kit.js"></script>
+<script src="../site/national.js"></script>
+<script src="../site/more.js"></script>
+<script>
+  // Tabs: show one page at a time; hidden pages load no data until opened.
+  const openTab = (id) => {
+    const pages = document.querySelectorAll('.mx-page');
+    if (![...pages].some((p) => p.id === id)) return;
+    pages.forEach((p) => { p.hidden = p.id !== id; });
+    document.querySelectorAll('.mx-tab').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.tab === id)));
+    dash.setLink(id);
+  };
+  document.querySelectorAll('.mx-tab').forEach((b) => b.addEventListener('click', () => openTab(b.dataset.tab)));
+  const linked = location.hash.slice(1);
+  if (linked) openTab(linked);
+  document.querySelectorAll('#measure-search').forEach((s) => s.addEventListener('input', () => dash.draw('measure-table')));
+</script>
+</div></body></html>
